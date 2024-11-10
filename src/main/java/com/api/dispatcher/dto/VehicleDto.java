@@ -1,40 +1,24 @@
-package com.api.dispatcher.model;
+package com.api.dispatcher.dto;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
 
-@Entity
-@Table(name = "vehicles")
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
-public class Vehicle {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class VehicleDto {
     private Long id;
     private String licensePlate;
     private String model;
     private String manufacturer;
-
-    @Column(precision = 5, scale = 2)
     private BigDecimal fuelCapacity;
-
-    @Column(precision = 5, scale = 2)
     private BigDecimal averageConsumption;
-
     private Integer mileage;
     private Date lastMaintenance;
     private Instant createdAt;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private UserDto user;
 
 }
