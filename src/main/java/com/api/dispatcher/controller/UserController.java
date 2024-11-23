@@ -16,7 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth/")
+@RequestMapping("/api/auth")
 public class UserController {
 
     private final UserService userService;
@@ -29,7 +29,7 @@ public class UserController {
         this.authenticationManager = authenticationManager;
     }
 
-    @PostMapping("register")
+    @PostMapping("/register")
     public ResponseEntity<String> createUser(@RequestBody CreateUserRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()
@@ -40,7 +40,8 @@ public class UserController {
             return new ResponseEntity<>("Username taken", HttpStatus.BAD_REQUEST);
         if (request.getUsername() == null ||
                 request.getPassword() == null ||
-                request.getEmail() == null) {
+                request.getEmail() == null ||
+                request.getRoles() == null) {
             return new ResponseEntity<>("Fields missing", HttpStatus.BAD_REQUEST);
         }
         if (request.getUsername().isEmpty() ||
@@ -52,7 +53,7 @@ public class UserController {
         return new ResponseEntity<>("User Registered", HttpStatus.CREATED);
     }
 
-    @PostMapping("login")
+    @PostMapping("/login")
     public ResponseEntity<String> loginUser(@RequestBody CreateUserRequest request, HttpServletResponse response) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -67,7 +68,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("logout")
+    @PostMapping("/logout")
     public ResponseEntity<String> logoutUser(HttpServletResponse response) {
         SecurityContextHolder.clearContext();
         Cookie cookie = new Cookie("token", null);
@@ -88,7 +89,7 @@ public class UserController {
         return cookie;
     }
 
-    @DeleteMapping("delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUser(HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()
@@ -116,7 +117,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("change")
+    @PutMapping("/change")
     public ResponseEntity<String> changeUser(@RequestBody CreateUserRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()

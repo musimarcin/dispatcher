@@ -17,20 +17,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final CustomUserDetailService userDetailService;
     private final JWTAuthEntryPoint authEntryPoint;
 
     @Autowired
-    public SecurityConfig(CustomUserDetailService userDetailService, JWTAuthEntryPoint authEntryPoint) {
-        this.userDetailService = userDetailService;
+    public SecurityConfig(JWTAuthEntryPoint authEntryPoint) {
         this.authEntryPoint = authEntryPoint;
     }
 
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+
         httpSecurity
-                .csrf(csrf -> csrf.disable())  // attack that tricks a user’s browser into making unwanted requests to a different website (no need in REST API)
+                .csrf(csrf -> csrf.disable())
 //                .cors(httpSecurityCorsConfigurer -> )
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling.authenticationEntryPoint(authEntryPoint))
@@ -38,11 +37,12 @@ public class SecurityConfig {
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/auth/**").permitAll();
-                    auth.requestMatchers("/api/vehicles").authenticated(); // need authentication to use this endpoint
-                    auth.requestMatchers("/api/admin/**").hasRole("ADMIN"); // need ADMIN role to use this endpoint
+                    auth.requestMatchers("/api/vehicles/**").authenticated();
+                    auth.requestMatchers("/api/vehicles").authenticated();
+                    auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
                 })
-                .httpBasic(httpBasic -> {});
-        httpSecurity.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
 
         return httpSecurity.build();
     }

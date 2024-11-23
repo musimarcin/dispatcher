@@ -1,13 +1,17 @@
 package com.api.dispatcher.service;
 
 import com.api.dispatcher.dto.CreateUserRequest;
+import com.api.dispatcher.model.Role;
 import com.api.dispatcher.model.UserEntity;
+import com.api.dispatcher.repository.RoleRepo;
 import com.api.dispatcher.repository.UserRepo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -29,7 +33,8 @@ public class UserService {
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
-        user.setRoles(Collections.singletonList(request.getRole()));
+        user.setRoles(request.getRoles());
+        user.setRegistered(Instant.now());
         userRepo.save(user);
     }
 

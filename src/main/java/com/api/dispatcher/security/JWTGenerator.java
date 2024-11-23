@@ -36,7 +36,6 @@ public class JWTGenerator {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-
         return claims.getSubject();
     }
 

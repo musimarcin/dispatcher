@@ -6,11 +6,11 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VehicleToVehicleDto implements Converter<Vehicle, VehicleDto> {
+public class VehicleDtoToVehicle implements Converter<VehicleDto, Vehicle> {
 
     @Override
-    public VehicleDto convert(Vehicle source) {
-        return new VehicleDto(
+    public Vehicle convert(VehicleDto source) {
+        return new Vehicle(
                 source.getId(),
                 source.getLicensePlate(),
                 source.getModel(),

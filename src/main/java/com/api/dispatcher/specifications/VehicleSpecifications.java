@@ -62,11 +62,16 @@ public class VehicleSpecifications {
 
     public static Specification<Vehicle> containsModel(String model) {
         return (root, query, builder) -> model == null || model.isEmpty() ? null :
-                builder.like(builder.lower(root.get("licensePlate")), "%" + model.toLowerCase() + "%");
+                builder.like(builder.lower(root.get("model")), "%" + model.toLowerCase() + "%");
     }
 
     public static Specification<Vehicle> containsManufacturer(String manufacturer) {
         return (root, query, builder) -> manufacturer == null || manufacturer.isEmpty() ? null :
-                builder.like(builder.lower(root.get("licensePlate")), "%" + manufacturer.toLowerCase() + "%");
+                builder.like(builder.lower(root.get("manufacturer")), "%" + manufacturer.toLowerCase() + "%");
+    }
+
+    public static Specification<Vehicle> containsUserId(Long userId) {
+        return (root, query, builder) -> userId == null ? null :
+                builder.equal(root.get("userId"), userId);
     }
 }

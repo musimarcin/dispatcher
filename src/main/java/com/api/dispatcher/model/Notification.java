@@ -16,10 +16,7 @@ public class Notification {
     private String message;
     private Boolean isRead;
     private Instant createdAt;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private Long userId;
 
 }
 

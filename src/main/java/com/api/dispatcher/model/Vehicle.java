@@ -32,9 +32,6 @@ public class Vehicle {
     private Integer mileage;
     private Date lastMaintenance;
     private Instant createdAt;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private Long userId;
 
 }
