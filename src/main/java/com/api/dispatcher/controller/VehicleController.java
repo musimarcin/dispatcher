@@ -44,6 +44,7 @@ public class VehicleController {
 
     @PostMapping
     public ResponseEntity<String> addVehicle(@RequestBody @Valid VehicleDto vehicleDto, BindingResult bindingResult) {
+        //check if any of notnull/notblank fields are empty
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
             bindingResult.getAllErrors().forEach(e -> {

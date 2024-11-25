@@ -8,7 +8,6 @@ import com.api.dispatcher.repository.VehicleRepo;
 import com.api.dispatcher.security.SecurityUtil;
 import com.api.dispatcher.specifications.VehicleSpecifications;
 import com.api.dispatcher.utils.converters.VehicleToVehicleDto;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,6 +50,10 @@ public class VehicleService {
     }
 
     public Specification<Vehicle> getSpecification(HashMap<String, String> searchCriteria) {
+        if (searchCriteria == null || searchCriteria.isEmpty()) {
+            return (root, query, builder) -> builder.disjunction(); // Return no results
+        }
+
         Specification<Vehicle> specification = Specification.where(null);
 
         if (StringUtils.hasLength(searchCriteria.get("licensePlate")))
@@ -88,18 +91,16 @@ public class VehicleService {
                 case null, default -> specification.and(VehicleSpecifications.mileageEqual(mileage));
             };
         }
-        if (specification == null) System.out.println("SPEC IS NULL");
         return specification;
     }
 
     public Page<Vehicle> searchVehicles(Integer page, HashMap<String, String> searchCriteria) {
         Long userId = getUser().getId();
         Specification<Vehicle> specification = getSpecification(searchCriteria);
-        System.out.println("SEARCH MAP " + searchCriteria);
-        if (specification != null)
-            specification = specification.and(VehicleSpecifications.containsUserId(userId));
-        else
-            return null;
+        if (specification == null) {
+            return Page.empty();
+        }
+        specification = specification.and(VehicleSpecifications.containsUserId(userId));
         return vehicleRepo.findAll(specification, getPage(page));
     }
 
