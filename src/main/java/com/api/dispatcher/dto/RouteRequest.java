@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class CreateRouteRequest {
+public class RouteRequest {
     @NotBlank(message = "Starting location is required")
     private String startLocation;
     @NotBlank(message = "Finishing location is required")

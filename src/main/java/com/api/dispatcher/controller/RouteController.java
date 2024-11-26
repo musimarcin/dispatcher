@@ -1,7 +1,7 @@
 package com.api.dispatcher.controller;
 
-import com.api.dispatcher.dto.CreateRouteRequest;
 import com.api.dispatcher.dto.RouteDto;
+import com.api.dispatcher.dto.RouteRequest;
 import com.api.dispatcher.dto.RoutesDto;
 import com.api.dispatcher.dto.VehicleDto;
 import com.api.dispatcher.model.Route;
@@ -11,15 +11,15 @@ import com.api.dispatcher.service.RouteService;
 import com.api.dispatcher.service.VehicleService;
 import com.api.dispatcher.utils.converters.RouteToRouteDto;
 import com.api.dispatcher.utils.converters.VehicleToVehicleDto;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 @RestController
 @RequestMapping("/api/routes")
@@ -45,8 +45,15 @@ public class RouteController {
         return new RoutesDto(routePage.map(routeConverter::convert));
     }
 
+    @GetMapping("/search")
+    public RoutesDto searchRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
+                                  @RequestBody @Valid HashMap<String, String> searchCriteria) {
+        Page<Route> routePage = routeService.searchRoute(page, searchCriteria);
+        return new RoutesDto(routePage.map(routeConverter::convert));
+    }
+
     @PostMapping("/add")
-    public ResponseEntity<String> addRoute(@RequestBody CreateRouteRequest request, BindingResult bindingResult) {
+    public ResponseEntity<String> addRoute(@RequestBody @Valid RouteDto routeDto, BindingResult bindingResult) {
         //check if any of notnull/notblank fields are empty
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
@@ -57,14 +64,26 @@ public class RouteController {
         }
         //TODO google api implementation and calculation for the rest of RouteDto
         //change start/end location from latitude/longitude to location name
-        HashMap<String, String> licensePlate = new HashMap<>();
-        licensePlate.put("licensePlate", request.getVehicleLicensePlate());
-        Page<Vehicle> vehiclePage = vehicleService.searchVehicles(0, licensePlate);
-        Page<VehicleDto> vehicleDtoPage = vehiclePage.map(vehicleConverter::convert);
-        VehicleDto vehicleDto = vehicleDtoPage.getContent().getFirst();
-        notificationService.sendNewRouteNotification(vehicleDto.getUserId(),
-                vehicleDto.getManufacturer() + " " + vehicleDto.getModel(),
-                request.getStartLocation() + " to " + request.getEndLocation());
+        routeService.addRoute(routeDto);
+        notificationService.sendNewRouteNotification(routeDto.getVehicleDto().getUserId(),
+                routeDto.getVehicleDto().getManufacturer() + " " + routeDto.getVehicleDto().getModel(),
+                routeDto.getStartLocation() + " to " + routeDto.getEndLocation());
         return new ResponseEntity<>("Route created successfully", HttpStatus.CREATED);
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteRoute(@RequestBody @Valid HashMap<String, String> searchCriteria, VehicleDto vehicleDto) {
+        boolean isDeleted = routeService.deleteRoute(searchCriteria);
+        String startLocation = searchCriteria.get("startLocation");
+        String endLocation = searchCriteria.get("endLocation");
+
+        if (isDeleted) {
+            notificationService.sendDeletedRouteNotification(vehicleDto.getUserId(),
+                    vehicleDto.getManufacturer() + " " + vehicleDto.getModel(),
+                    startLocation + " to " + endLocation);
+            return new ResponseEntity<>("Route deleted successfully", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Route not found", HttpStatus.NOT_FOUND);
+    }
+
 }

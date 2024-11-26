@@ -47,4 +47,15 @@ public class NotificationService {
 
         notificationRepo.save(notification);
     }
+
+    public void sendDeletedRouteNotification(Long userId, String vehicleName, String routeDetails) {
+        Notification notification = new Notification();
+        notification.setUserId(userId);
+        notification.setMessage("Route has been deleted for vehicle " + vehicleName + " : " + routeDetails);
+        notification.setCreatedAt(Instant.now());
+        notification.setIsRead(false);
+
+        notificationRepo.save(notification);
+    }
+
 }

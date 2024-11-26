@@ -1,6 +1,5 @@
 package com.api.dispatcher.controller;
 
-import com.api.dispatcher.dto.NotificationDto;
 import com.api.dispatcher.dto.NotificationsDto;
 import com.api.dispatcher.model.Notification;
 import com.api.dispatcher.service.NotificationService;

@@ -1,6 +1,7 @@
 package com.api.dispatcher.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.util.Date;
 @Entity
 @Table(name = "routes")
 @Data
+@AllArgsConstructor
 public class Route {
 
     @Id

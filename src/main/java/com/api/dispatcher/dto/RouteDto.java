@@ -26,6 +26,6 @@ public class RouteDto {
     private String status;
     private Instant createdAt;
     @NotNull(message = "Vehicle is required")
-    private Vehicle vehicle;
+    private VehicleDto vehicleDto;
     private Long userId;
 }
