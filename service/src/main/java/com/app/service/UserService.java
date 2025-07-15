@@ -1,5 +1,7 @@
 package com.app.service;
 
+import com.app.model.Role;
+import com.app.repository.RoleRepo;
 import com.app.request.CreateUserRequest;
 import com.app.model.UserEntity;
 import com.app.repository.UserRepo;
@@ -13,10 +15,12 @@ import java.time.Instant;
 public class UserService {
 
     private final UserRepo userRepo;
+    private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepo userRepo, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
+        this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -29,7 +33,7 @@ public class UserService {
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
-        user.setRoles(request.getRoles());
+        user.setRoles(roleRepo.findByNameIn(request.getRoles()));
         user.setRegistered(Instant.now());
         userRepo.save(user);
     }
