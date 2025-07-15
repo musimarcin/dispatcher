@@ -6,11 +6,11 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.3.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.api</groupId>
+	<groupId>com.app</groupId>
 	<artifactId>dispatcher</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
 	<name>dispatcher</name>
 	<description>Project for dispatcher</description>
 	<url/>
@@ -20,7 +20,15 @@
 	<developers>
 		<developer/>
 	</developers>
-	<scm>
+
+    <modules>
+        <module>persistence</module>
+		<module>api</module>
+		<module>service</module>
+		<module>web</module>
+	</modules>
+
+    <scm>
 		<connection/>
 		<developerConnection/>
 		<tag/>
@@ -203,7 +211,15 @@
 					</excludes>
 				</configuration>
 			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
 	</build>
 
 </project>
