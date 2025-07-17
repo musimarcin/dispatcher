@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -69,5 +72,66 @@ public class UserService {
             int changes = userRepo.updateEmail(username, email);
             return changes > 0;
         } else return false;
+    }
+
+    @Transactional
+    public boolean addRoles(String username, List<String> newRoles) {
+        UserEntity user = userRepo.findByUsername(username);
+        List<Role> roles = newRoles.stream()
+                .map(name -> roleRepo.findByName(name).orElseThrow(() -> new RuntimeException("Role not found")))
+                .toList();
+        int changes = 0;
+        if (user != null) {
+            for (Role r : roles) {
+                if (!user.getRoles().contains(r)) {
+                    user.getRoles().add(r);
+                    changes++;
+                }
+            }
+        } else {
+            return false;
+        }
+        return changes > 0;
+    }
+
+    @Transactional
+    public boolean removeRoles(String username, List<String> newRoles) {
+        UserEntity user = userRepo.findByUsername(username);
+        List<Role> roles = newRoles.stream()
+                .map(name -> roleRepo.findByName(name).orElseThrow(() -> new RuntimeException("Role not found")))
+                .toList();
+        int changes = 0;
+        if (user != null) {
+            for (Role r : roles) {
+                if (user.getRoles().contains(r)) {
+                    user.getRoles().remove(r);
+                    changes++;
+                }
+            }
+        } else return false;
+        return changes > 0;
+    }
+
+    public List<String> getRoles() {
+        List<Role> roles = roleRepo.findAll();
+        List<String> res = new ArrayList<>();
+        for (Role r : roles)
+            res.add(r.getName().substring(5));
+        res.removeFirst();
+        return res;
+    }
+
+    public List<String> getUserRoles(String username) {
+        UserEntity user = userRepo.findByUsername(username);
+        System.out.println("THIS USER IS NAMED " + user.getUsername());
+        List<Role> roles = user.getRoles();
+        System.out.println("THIS IS ROLES BRO " + roles.toString());
+        List<String> res = new ArrayList<>();
+        for (Role r : roles) {
+            System.out.println("ADDING ROLES BRO");
+            res.add(r.getName().substring(5));
+        }
+        res.removeFirst();
+        return res;
     }
 }

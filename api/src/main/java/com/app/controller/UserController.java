@@ -15,6 +15,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/auth")
 public class UserController {
@@ -31,9 +35,8 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> createUser(@RequestBody CreateUserRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getPrincipal())) {
+        String username = SecurityUtil.getSessionUser();
+        if (username != null) {
             return new ResponseEntity<>("Already logged in", HttpStatus.FORBIDDEN);
         }
         if (userService.checkUserAndEmail(request.getUsername(), request.getEmail()))
@@ -75,7 +78,7 @@ public class UserController {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         response.addCookie(cookie);
         return new ResponseEntity<>("Logged out successfully", HttpStatus.OK);
     }
@@ -85,20 +88,20 @@ public class UserController {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(3500);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         return cookie;
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUser(HttpServletResponse response) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getPrincipal())) {
+        String username = SecurityUtil.getSessionUser();
+        if (username != null) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             try {
                 SecurityContextHolder.clearContext();
                 Cookie cookie = new Cookie("token", null);
                 cookie.setHttpOnly(true);
-                cookie.setSecure(true);
+                cookie.setSecure(false);
                 cookie.setPath("/");
                 cookie.setMaxAge(0);
                 response.addCookie(cookie);
@@ -119,28 +122,25 @@ public class UserController {
 
     @PutMapping("/change")
     public ResponseEntity<String> changeUser(@RequestBody CreateUserRequest request, HttpServletResponse response) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getPrincipal())) {
-            String username = SecurityUtil.getSessionUser();
-
+        String username = SecurityUtil.getSessionUser();
+        if (username != null) {
             try {
-                String message = "";
+                StringBuilder message = new StringBuilder();
                 if (request.getUsername() != null) {
                     if (userService.changeUsername(username, request.getUsername()))
-                        message = "username";
+                        message.append("username ");
                     else
                         return new ResponseEntity<>("Failed to change user details", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
                 if (request.getPassword() != null) {
                     if (userService.changePassword(username, request.getPassword()))
-                        message = "password";
+                        message.append("password ");
                     else
                         return new ResponseEntity<>("Failed to change user details", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
                 if (request.getEmail() != null) {
                     if (userService.changeEmail(username, request.getEmail()))
-                        message = "email";
+                        message.append("email ");
                     else
                         return new ResponseEntity<>("Failed to change user details", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
@@ -155,4 +155,60 @@ public class UserController {
             return new ResponseEntity<>("You are not logged in to change user details", HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @PostMapping("/change/role/add")
+    public ResponseEntity<String> userAddRole(@RequestBody CreateUserRequest request, HttpServletResponse response) {
+        String username = SecurityUtil.getSessionUser();
+        if (username != null) {
+            try {
+                if (request.getRoles() != null) {
+                    if (userService.addRoles(username, request.getRoles())) {
+                        String role = request.getRoles().toString();
+                        return new ResponseEntity<>("Successfully added role " + role, HttpStatus.OK);
+                    }
+                    return new ResponseEntity<>("Failed to add role", HttpStatus.BAD_REQUEST);
+                }
+            } catch (Exception e) {
+                return new ResponseEntity<>("Failed to change user details", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        return new ResponseEntity<>("You are not logged in to change user details", HttpStatus.UNAUTHORIZED);
+    }
+
+    @PostMapping("/change/role/remove")
+    public ResponseEntity<String> userRemoveRole(@RequestBody CreateUserRequest request, HttpServletResponse response) {
+        String username = SecurityUtil.getSessionUser();
+        if (username != null) {
+            try {
+                if (request.getRoles() != null) {
+                    if (userService.removeRoles(username, request.getRoles())) {
+                        String role = request.getRoles().toString();
+                        return new ResponseEntity<>("Successfully removed role " + role, HttpStatus.OK);
+                    }
+                    return new ResponseEntity<>("Failed to remove role", HttpStatus.BAD_REQUEST);
+                }
+            } catch (Exception e) {
+                return new ResponseEntity<>("Failed to change user details", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        return new ResponseEntity<>("You are not logged in to change user details", HttpStatus.UNAUTHORIZED);
+    }
+
+
+    @GetMapping("/roles")
+    public List<String> getRoles() {
+        return userService.getRoles();
+    }
+
+    @GetMapping("/role/user")
+    public ResponseEntity<List<String>> getUserRoles() {
+        String username = SecurityUtil.getSessionUser();
+        System.out.println("USERNAME " + username);
+        if (username != null) {
+            System.out.println("GOING INTO SERVICE");
+            return new ResponseEntity<>(userService.getUserRoles(username), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(Collections.emptyList(), HttpStatus.UNAUTHORIZED);
+    }
+
 }

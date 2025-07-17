@@ -1,21 +1,30 @@
 package com.app.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JWTGenerator {
 
-    private final Key JWT_SECRET = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    private Key JWT_SECRET;
     private static final long JWT_EXPIRATION = 86400000L;
+
+    @PostConstruct
+    public void init() {
+        JWT_SECRET = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
 
     public String generateToken(Authentication authentication) {
         String username = authentication.getName();
@@ -46,8 +55,10 @@ public class JWTGenerator {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (Exception ex) {
-            throw new AuthenticationCredentialsNotFoundException("JWT expired or incorrect", ex);
+        } catch (ExpiredJwtException ex) {
+            throw new AuthenticationCredentialsNotFoundException("JWT expired", ex);
+        } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException ex) {
+            throw new AuthenticationCredentialsNotFoundException("Invalid JWT", ex);
         }
     }
 }
