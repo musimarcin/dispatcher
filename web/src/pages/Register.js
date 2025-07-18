@@ -21,8 +21,7 @@ function Register() {
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));
-            })
-            .catch(err => console.error("Failed to fetch roles", err));
+            }).catch(err => alert(err.response?.data?.message));
         }
     }, []);
 
@@ -39,6 +38,7 @@ function Register() {
             email,
             roles: [selectedRole]
         }).catch(err => console.error("Register failed", err));
+        alert("Successfully registered")
         navigate('/login');
     };
 

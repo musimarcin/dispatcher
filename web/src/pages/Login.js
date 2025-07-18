@@ -13,7 +13,8 @@ function Login() {
         api.post("/auth/login", {
             username,
             password
-        }).catch(err => console.error("Login failed", err));
+        }).catch(err => alert(err.response?.data?.message));
+        alert("Successfully logged in")
         navigate('/settings');
     };
 

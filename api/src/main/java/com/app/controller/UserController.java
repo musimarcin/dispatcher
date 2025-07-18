@@ -1,6 +1,8 @@
 package com.app.controller;
 
 import com.app.request.CreateUserRequest;
+import com.app.security.CustomUserDetailService;
+import com.app.security.JWTAuthenticationFilter;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
 import com.app.service.UserService;
@@ -13,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -26,11 +29,13 @@ public class UserController {
     private final UserService userService;
     private final JWTGenerator jwtGenerator;
     private final AuthenticationManager authenticationManager;
+    private final CustomUserDetailService customUserDetailService;
 
-    public UserController(UserService userService, JWTGenerator jwtGenerator, AuthenticationManager authenticationManager) {
+    public UserController(UserService userService, JWTGenerator jwtGenerator, AuthenticationManager authenticationManager, CustomUserDetailService customUserDetailService) {
         this.userService = userService;
         this.jwtGenerator = jwtGenerator;
         this.authenticationManager = authenticationManager;
+        this.customUserDetailService = customUserDetailService;
     }
 
     @PostMapping("/register")
@@ -63,8 +68,7 @@ public class UserController {
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = jwtGenerator.generateToken(authentication);
-            Cookie cookie = getCookie(token);
-            response.addCookie(cookie);
+            response.addCookie(getNewCookie(token));
             return new ResponseEntity<>("Logged in successfully", HttpStatus.OK);
         } catch (AuthenticationException e) {
             return new ResponseEntity<>("Credentials incorrect", HttpStatus.UNAUTHORIZED);
@@ -73,17 +77,21 @@ public class UserController {
 
     @PostMapping("/logout")
     public ResponseEntity<String> logoutUser(HttpServletResponse response) {
+        deleteCookie(response);
         SecurityContextHolder.clearContext();
+        return new ResponseEntity<>("Logged out successfully", HttpStatus.OK);
+    }
+
+    private static void deleteCookie(HttpServletResponse response) {
         Cookie cookie = new Cookie("token", null);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
         cookie.setSecure(false);
         response.addCookie(cookie);
-        return new ResponseEntity<>("Logged out successfully", HttpStatus.OK);
     }
 
-    private static Cookie getCookie(String token) {
+    private static Cookie getNewCookie (String token) {
         Cookie cookie = new Cookie("token", token);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
@@ -98,14 +106,8 @@ public class UserController {
         if (username != null) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             try {
+                deleteCookie(response);
                 SecurityContextHolder.clearContext();
-                Cookie cookie = new Cookie("token", null);
-                cookie.setHttpOnly(true);
-                cookie.setSecure(false);
-                cookie.setPath("/");
-                cookie.setMaxAge(0);
-                response.addCookie(cookie);
-
                 if (userService.deleteUser(authentication.getName()))
                     return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
                 else
@@ -126,25 +128,32 @@ public class UserController {
         if (username != null) {
             try {
                 StringBuilder message = new StringBuilder();
-                if (request.getUsername() != null) {
-                    if (userService.changeUsername(username, request.getUsername()))
+                if (!request.getUsername().isEmpty()) {
+                    if (userService.changeUsername(username, request.getUsername())) {
+                        UserDetails userDetails = customUserDetailService.loadUserByUsername(request.getUsername());
+                        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        String token = jwtGenerator.generateToken(authentication);
+                        response.addCookie(getNewCookie(token));
+
                         message.append("username ");
+                    }
                     else
-                        return new ResponseEntity<>("Failed to change user details", HttpStatus.INTERNAL_SERVER_ERROR);
+                        return new ResponseEntity<>("Failed to change username", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
-                if (request.getPassword() != null) {
+                if (!request.getPassword().isEmpty()) {
                     if (userService.changePassword(username, request.getPassword()))
                         message.append("password ");
                     else
-                        return new ResponseEntity<>("Failed to change user details", HttpStatus.INTERNAL_SERVER_ERROR);
+                        return new ResponseEntity<>("Failed to change password", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
-                if (request.getEmail() != null) {
+                if (!request.getEmail().isEmpty()) {
                     if (userService.changeEmail(username, request.getEmail()))
                         message.append("email ");
                     else
-                        return new ResponseEntity<>("Failed to change user details", HttpStatus.INTERNAL_SERVER_ERROR);
+                        return new ResponseEntity<>("Failed to change email", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
-
                 return new ResponseEntity<>("Successfully changed " + message, HttpStatus.OK);
 
             } catch (Exception e) {
@@ -203,9 +212,7 @@ public class UserController {
     @GetMapping("/role/user")
     public ResponseEntity<List<String>> getUserRoles() {
         String username = SecurityUtil.getSessionUser();
-        System.out.println("USERNAME " + username);
         if (username != null) {
-            System.out.println("GOING INTO SERVICE");
             return new ResponseEntity<>(userService.getUserRoles(username), HttpStatus.OK);
         }
         return new ResponseEntity<>(Collections.emptyList(), HttpStatus.UNAUTHORIZED);

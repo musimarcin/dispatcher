@@ -5,6 +5,8 @@ import com.app.repository.RoleRepo;
 import com.app.request.CreateUserRequest;
 import com.app.model.UserEntity;
 import com.app.repository.UserRepo;
+import com.app.security.CustomUserDetailService;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -20,11 +21,13 @@ public class UserService {
     private final UserRepo userRepo;
     private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
+    private final List<Role> roles;
 
-    public UserService(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder, List<Role> roles) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
+        this.roles = roleRepo.findAll();
     }
 
     public boolean checkUserAndEmail(String username, String email) {
@@ -53,7 +56,7 @@ public class UserService {
     @Transactional
     public boolean changeUsername(String oldUsername, String newUsername) {
         if (userRepo.findByUsername(oldUsername) != null) {
-            int changes = userRepo.updateUsername(oldUsername, newUsername);
+            int changes = userRepo.updateUsername(newUsername, oldUsername);
             return changes > 0;
         } else return false;
     }
@@ -61,7 +64,7 @@ public class UserService {
     @Transactional
     public boolean changePassword(String username, String password) {
         if (userRepo.findByUsername(username) != null) {
-            int changes = userRepo.updatePassword(username, passwordEncoder.encode(password));
+            int changes = userRepo.updatePassword(passwordEncoder.encode(password), username);
             return changes > 0;
         } else return false;
     }
@@ -69,7 +72,7 @@ public class UserService {
     @Transactional
     public boolean changeEmail(String username, String email) {
         if (userRepo.findByUsername(username) != null) {
-            int changes = userRepo.updateEmail(username, email);
+            int changes = userRepo.updateEmail(email, username);
             return changes > 0;
         } else return false;
     }
@@ -113,25 +116,20 @@ public class UserService {
     }
 
     public List<String> getRoles() {
-        List<Role> roles = roleRepo.findAll();
         List<String> res = new ArrayList<>();
         for (Role r : roles)
             res.add(r.getName().substring(5));
-        res.removeFirst();
+        res.removeFirst(); //removing role admin
         return res;
     }
 
     public List<String> getUserRoles(String username) {
         UserEntity user = userRepo.findByUsername(username);
-        System.out.println("THIS USER IS NAMED " + user.getUsername());
         List<Role> roles = user.getRoles();
-        System.out.println("THIS IS ROLES BRO " + roles.toString());
         List<String> res = new ArrayList<>();
         for (Role r : roles) {
-            System.out.println("ADDING ROLES BRO");
             res.add(r.getName().substring(5));
         }
-        res.removeFirst();
         return res;
     }
 }

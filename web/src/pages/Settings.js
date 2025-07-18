@@ -18,20 +18,45 @@ function Settings() {
         if (storedRoles) {
             setRoles(JSON.parse(storedRoles))
         } else {
-            api.get("/auth/roles/")
+            api.get("/auth/roles")
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => console.error("Failed to fetch roles", err));
+            }).catch(err => alert(err.response?.data?.message)); //question mars to check if previous part returned null
         }
 
-        api.get("/auth/role/user/")
-        .then(response => {
-            setUserRoles(response.data);
-            localStorage.setItem("userRoles", JSON.stringify(response.data));
-        }).catch(err => console.error("Failed to fetch roles", err));
+        const storedUserRoles = localStorage.getItem("userRoles");
 
+        if (storedUserRoles) {
+            const userRolesData = JSON.parse(storedUserRoles);
+            setUserRoles(userRolesData);
+            //filter out roles
+            const allRoles = JSON.parse(storedRoles);
+            const filtered = allRoles.filter(role => !userRolesData.includes(role));
+            setRoles(filtered);
+        } else {
+            updateRoles()
+                .then(() => { //filter out roles
+                    const allRoles = JSON.parse(localStorage.getItem("roles") || "[]");
+                    const userRolesData = JSON.parse(localStorage.getItem("userRoles") || "[]");
+                    const filtered = allRoles.filter(role => !userRolesData.includes(role));
+                    setRoles(filtered);
+                });
+        }
     }, []);
+
+    const updateRoles = () => {
+        return api.get("/auth/role/user")
+            .then(response => {
+                setUserRoles(response.data);
+                localStorage.setItem("userRoles", JSON.stringify(response.data));
+                //filter out roles
+                const allRoles = JSON.parse(localStorage.getItem("roles") || "[]");
+                const filtered = allRoles.filter(role => !response.data.includes(role));
+                setRoles(filtered);
+                setSelectedAvailableRoles([]);
+            }).catch(err => alert(err.response?.data?.message));
+    };
 
     const handleUserRolesChange = (e) => {
         const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
@@ -50,25 +75,35 @@ function Settings() {
             username,
             password,
             email
-        }).catch(err => console.error(err.response.data.message));
+            }).catch(err => alert(err.response?.data?.message));
         navigate('/settings');
     };
 
     const removeRoles = async (e) => {
         e.preventDefault();
         const rolesWithPrefix = selectedUserRoles.map(role => "ROLE_" + role);
+
         api.post("/auth/change/role/remove", {
             roles: rolesWithPrefix
-        }).catch(err => console.error(err.response.data.message));
-    }
+        }).then(() => {
+            return updateRoles();
+        }).then(() => {
+            setSelectedUserRoles([]); //refreshes window
+        }).catch(err => alert(err.response?.data?.message));
+    };
 
     const addRoles = async (e) => {
         e.preventDefault();
         const rolesWithPrefix = selectedAvailableRoles.map(role => "ROLE_" + role);
+
         api.post("/auth/change/role/add", {
             roles: rolesWithPrefix
-        }).catch(err => console.error(err.response.data.message));
-    }
+        }).then(() => {
+            return updateRoles();
+        }).then(() => {
+            setSelectedAvailableRoles([]); //refreshes window
+        }).catch(err => alert(err.response?.data?.message));
+    };
 
     return (
         <div className="max-w-md mx-auto mt-20 p-4 border rounded-lg shadow-lg">

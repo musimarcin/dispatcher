@@ -16,17 +16,17 @@ public interface UserRepo extends JpaRepository<UserEntity, Long> {
     Boolean existsByUsername(String username);
     Boolean existsByEmail(String email);
 
-    @Modifying
+    @Modifying(clearAutomatically = true) // clears cache so updated data is fetched fom db
     @Transactional
     @Query("UPDATE UserEntity u SET u.email = :email WHERE u.username = :username")
-    int updateEmail(@Param("username") String username, @Param("email") String email);
+    int updateEmail(@Param("username") String email, @Param("email") String username);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Transactional
     @Query("UPDATE UserEntity u SET u.username = :newUsername WHERE u.username = :oldUsername")
     int updateUsername(@Param("newUsername") String newUsername, @Param("oldUsername") String oldUsername);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Transactional
     @Query("UPDATE UserEntity u SET u.password = :password WHERE u.username = :username")
     int updatePassword(@Param("password") String password, @Param("username") String username);
