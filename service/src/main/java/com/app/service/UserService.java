@@ -47,10 +47,14 @@ public class UserService {
     @Transactional
     public boolean deleteUser(String username) {
         UserEntity user = userRepo.findByUsername(username);
+        System.out.println("FOUND USER " + user.getUsername());
         if (user != null) {
+            System.out.println("DELETING IN SERVICE ");
             userRepo.delete(user);
             return true;
-        } else return false;
+        }
+        System.out.println("NOT WORKED OUT");
+        return false;
     }
 
     @Transactional
@@ -115,7 +119,7 @@ public class UserService {
         return changes > 0;
     }
 
-    public List<String> getRoles() {
+    public List<String> getAllRoles() {
         List<String> res = new ArrayList<>();
         for (Role r : roles)
             res.add(r.getName().substring(5));

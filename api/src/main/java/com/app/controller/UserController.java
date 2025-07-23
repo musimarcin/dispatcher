@@ -103,13 +103,15 @@ public class UserController {
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUser(HttpServletResponse response) {
         String username = SecurityUtil.getSessionUser();
+        System.out.println("USERNAME SESSION " + username);
         if (username != null) {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             try {
-                deleteCookie(response);
-                SecurityContextHolder.clearContext();
-                if (userService.deleteUser(authentication.getName()))
+                if (userService.deleteUser(username)) {
+                    System.out.println("OK DELETING USER");
+                    deleteCookie(response);
+                    SecurityContextHolder.clearContext();
                     return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
+                }
                 else
                     return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
 
@@ -205,8 +207,8 @@ public class UserController {
 
 
     @GetMapping("/roles")
-    public List<String> getRoles() {
-        return userService.getRoles();
+    public List<String> getAllRoles() {
+        return userService.getAllRoles();
     }
 
     @GetMapping("/role/user")

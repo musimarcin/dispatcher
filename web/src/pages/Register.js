@@ -21,7 +21,7 @@ function Register() {
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => alert(err.response?.data?.message));
+            }).catch(err => alert(err.response?.data));
         }
     }, []);
 
@@ -37,9 +37,10 @@ function Register() {
             password,
             email,
             roles: [selectedRole]
+        }).then(response => {
+            alert(response.data);
+            navigate('/login');
         }).catch(err => console.error("Register failed", err));
-        alert("Successfully registered")
-        navigate('/login');
     };
 
     return (

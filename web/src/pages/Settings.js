@@ -10,6 +10,7 @@ function Settings() {
     const [selectedUserRoles, setSelectedUserRoles] = useState([]);
     const [selectedAvailableRoles, setSelectedAvailableRoles] = useState([]);
     const [userRoles, setUserRoles] = useState([]);
+    const [isPopUp, setIsPopUp] = useState(false);
     const navigate = useNavigate();
 
 
@@ -22,7 +23,7 @@ function Settings() {
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => alert(err.response?.data?.message)); //question mars to check if previous part returned null
+            }).catch(err => alert(err.response?.data)); //question mars to check if previous part returned null
         }
 
         const storedUserRoles = localStorage.getItem("userRoles");
@@ -55,7 +56,7 @@ function Settings() {
                 const filtered = allRoles.filter(role => !response.data.includes(role));
                 setRoles(filtered);
                 setSelectedAvailableRoles([]);
-            }).catch(err => alert(err.response?.data?.message));
+            }).catch(err => alert(err.response?.data));
     };
 
     const handleUserRolesChange = (e) => {
@@ -75,8 +76,8 @@ function Settings() {
             username,
             password,
             email
-            }).catch(err => alert(err.response?.data?.message));
-        navigate('/settings');
+            }).then(navigate('/settings'))
+            .catch(err => alert(err.response?.data));
     };
 
     const removeRoles = async (e) => {
@@ -89,7 +90,7 @@ function Settings() {
             return updateRoles();
         }).then(() => {
             setSelectedUserRoles([]); //refreshes window
-        }).catch(err => alert(err.response?.data?.message));
+        }).catch(err => alert(err.response?.data));
     };
 
     const addRoles = async (e) => {
@@ -102,12 +103,22 @@ function Settings() {
             return updateRoles();
         }).then(() => {
             setSelectedAvailableRoles([]); //refreshes window
-        }).catch(err => alert(err.response?.data?.message));
+        }).catch(err => alert(err.response?.data));
     };
 
+    const deleteUser = async (e) => {
+        await api.delete('auth/delete')
+        .then(response => {
+            alert(response.data);
+            navigate('/login');
+            localStorage.clear();
+        })
+        .catch(err => alert(err.response?.data));
+    }
+
     return (
-        <div className="max-w-md mx-auto mt-20 p-4 border rounded-lg shadow-lg">
-            <h2 className="text-2xl mb-4">Settings</h2>
+        <div>
+            <h2>Settings</h2>
             <form onSubmit={handleSubmit}>
 
                 <input
@@ -115,7 +126,6 @@ function Settings() {
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-2 mb-4 border rounded"
                     required
                 />
 
@@ -124,7 +134,6 @@ function Settings() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-2 mb-4 border rounded"
                     required
                 />
 
@@ -133,11 +142,10 @@ function Settings() {
                     placeholder="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-2 mb-4 border rounded"
                     required
                 />
 
-                <button type="button" onClick={handleSubmit} className="p-20 w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <button type="button" onClick={handleSubmit}>
                     Change
                 </button>
 
@@ -146,13 +154,12 @@ function Settings() {
                     multiple
                     onChange={handleUserRolesChange}
                     value={selectedUserRoles}
-                    className="w-full p-2 mb-4 border rounded"
                 >
                     {userRoles.map(role => (
                         <option key={role} value={role}>{role}</option>
                     ))}
                 </select>
-                <button type="button" onClick={removeRoles} className="p-20 w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <button type="button" onClick={removeRoles}>
                     Remove Role
                 </button>
 
@@ -161,17 +168,37 @@ function Settings() {
                     multiple
                     onChange={handleAvailableRolesChange}
                     value={selectedAvailableRoles}
-                    className="w-full p-2 mb-4 border rounded"
                 >
                     {roles.map(role => (
                         <option key={role} value={role}>{role}</option>
                     ))}
                 </select>
-                <button type="button" onClick={addRoles} className="p-20 w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <button type="button" onClick={addRoles}>
                     Add Role
                 </button>
-
             </form>
+            <button type="button" onClick={() => setIsPopUp(true)}>
+                Delete User
+            </button>
+
+            {isPopUp && (
+                <div>
+                    <div>
+                        <h2>User Deletion</h2>
+                        <p>Are you sure?</p>
+                        <button onClick={() => {
+                                    setIsPopUp(false)
+                                    deleteUser();
+                                }
+                            }>
+                            Yes
+                        </button>
+                        <button onClick={() => setIsPopUp(false)}>
+                            No
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

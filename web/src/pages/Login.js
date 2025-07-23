@@ -13,10 +13,15 @@ function Login() {
         api.post("/auth/login", {
             username,
             password
-        }).catch(err => alert(err.response?.data?.message));
-        alert("Successfully logged in")
-        navigate('/settings');
+        }).then(response => {
+            alert(response.data);
+            navigate('/settings');
+        }).catch(err => alert(err.response?.data));
     };
+
+    const goRegister = () => {
+        navigate('/register')
+    }
 
     return (
         <div className="max-w-md mx-auto mt-20 p-4 border rounded-lg shadow-lg">
@@ -42,6 +47,9 @@ function Login() {
                     Login
                 </button>
             </form>
+                <button type="button" onClick={goRegister} className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Register
+                </button>
         </div>
     );
 }

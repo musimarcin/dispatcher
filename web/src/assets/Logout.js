@@ -10,9 +10,11 @@ function Logout() {
             e.preventDefault();
 
             api.post("/auth/logout", {})
-            .catch(err => alert("Failed to logout", err));
-            alert("Log out successfully")
-            navigate('/login');
+            .then(response => {
+                alert(response.data);
+                navigate('/login');
+                localStorage.clear();
+            }).catch(err => alert("Failed to logout", err));
     };
 
     return (
