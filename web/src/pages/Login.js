@@ -16,13 +16,9 @@ function Login() {
             password
         }).then(response => {
             alert(response.data);
-            navigate('/settings');
+            navigate('/');
         }).catch(err => alert(err.response?.data));
     };
-
-    const goRegister = () => {
-        navigate('/register')
-    }
 
     return (
         <div className="max-w-md mx-auto mt-20 p-4 border rounded-lg shadow-lg">
@@ -48,7 +44,7 @@ function Login() {
                     Login
                 </button>
             </form>
-                <button type="button" onClick={goRegister} className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <button type="button" onClick={() => navigate('/register')} className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                     Register
                 </button>
         </div>

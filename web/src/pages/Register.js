@@ -8,6 +8,7 @@ function Register() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [email, setEmail] = useState("");
+    const [showSelected, setShowSelected] = useState("");
     const [roles, setRoles] = useState([]);
     const [selectedRole, setSelectedRole] = useState([]);
     const navigate = useNavigate();
@@ -27,6 +28,7 @@ function Register() {
     }, []);
 
     const handleRolesChange = (role) => {
+        setShowSelected(role);
         setSelectedRole("ROLE_" + role);
     };
 
@@ -78,7 +80,7 @@ function Register() {
 
                 <Dropdown onSelect={handleRolesChange}>
                     <Dropdown.Toggle variant="primary" id="dropdown-basic">
-                        {"Select Role"}
+                        {showSelected || "Select Role"}
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
                         {roles.map(role => (

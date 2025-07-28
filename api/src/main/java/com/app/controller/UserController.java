@@ -2,7 +2,6 @@ package com.app.controller;
 
 import com.app.request.CreateUserRequest;
 import com.app.security.CustomUserDetailService;
-import com.app.security.JWTAuthenticationFilter;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
 import com.app.service.UserService;
@@ -18,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -96,7 +94,7 @@ public class UserController {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(3500);
-        cookie.setSecure(false);
+        cookie.setSecure(false); // only for development, in production: true
         return cookie;
     }
 
@@ -218,6 +216,13 @@ public class UserController {
             return new ResponseEntity<>(userService.getUserRoles(username), HttpStatus.OK);
         }
         return new ResponseEntity<>(Collections.emptyList(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> isLoggedIn() {
+        if (SecurityUtil.getSessionUser() != null)
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        return new ResponseEntity<>(false, HttpStatus.UNAUTHORIZED);
     }
 
 }

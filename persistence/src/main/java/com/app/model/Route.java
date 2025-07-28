@@ -24,7 +24,7 @@ public class Route {
     private Integer estimatedTime;
     private Date startTime;
     private Date endTime;
-    private String status;
+    private RouteStatus status;
     private Instant createdAt;
 
     @ManyToOne

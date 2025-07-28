@@ -34,4 +34,14 @@ public class NotificationService {
     public Page<Notification> getAllNotifications(Integer page) {
         return notificationRepo.findByUserId(getUser(), getPage(page));
     }
+
+    public boolean readNotification(Long id) {
+        if (notificationRepo.findById(id).isPresent()) {
+            Notification notification = notificationRepo.findById(id).get();
+            notification.setIsRead(true);
+            notificationRepo.save(notification);
+            return true;
+        }
+        return false;
+    }
 }

@@ -1,12 +1,14 @@
 package com.app.service;
 
-import com.app.model.UserEntity;
+import com.app.events.EventType;
+import com.app.events.VehicleEvent;
 import com.app.model.Vehicle;
 import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
 import com.app.request.CreateVehicleRequest;
 import com.app.security.SecurityUtil;
 import com.app.specifications.VehicleSpecifications;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,10 +27,12 @@ public class VehicleService {
 
     private final VehicleRepo vehicleRepo;
     private final UserRepo userRepo;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo) {
+    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo, ApplicationEventPublisher eventPublisher) {
         this.vehicleRepo = vehicleRepo;
         this.userRepo = userRepo;
+        this.eventPublisher = eventPublisher;
     }
 
     public Pageable getPage(Integer page) {
@@ -109,6 +113,13 @@ public class VehicleService {
                 Instant.now(),
                 getUser());
         vehicleRepo.save(vehicle);
+        VehicleEvent vehicleEvent = new VehicleEvent(
+                EventType.CREATED,
+                vehicle,
+                getUser(),
+                Instant.now()
+        );
+        eventPublisher.publishEvent(vehicleEvent);
     }
 
     @Transactional
