@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from '../assets/api'
 import { useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Login() {
     const [username, setUsername] = useState("");

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from '../assets/api'
 import { useNavigate } from 'react-router-dom';
 import Dropdown from 'react-bootstrap/Dropdown';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Register() {
     const [username, setUsername] = useState("");

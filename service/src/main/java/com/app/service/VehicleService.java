@@ -36,17 +36,16 @@ public class VehicleService {
         return PageRequest.of(pageNo, 10);
     }
 
-    private UserEntity getUser() {
+    private Long getUser() {
         String username = SecurityUtil.getSessionUser();
-        return userRepo.findByUsername(username);
+        return userRepo.findByUsername(username).getId();
     }
 
     public Page<Vehicle> getAllVehicles(Integer page) {
-        Long userId = getUser().getId();
-        return vehicleRepo.findByUserId(userId, getPage(page));
+        return vehicleRepo.findByUserId(getUser(), getPage(page));
     }
 
-    public Specification<Vehicle> getSpecification(HashMap<String, String> searchCriteria) {
+    private Specification<Vehicle> getSpecification(HashMap<String, String> searchCriteria) {
         Specification<Vehicle> specification = Specification.where(null);
 
         if (StringUtils.hasLength(searchCriteria.get("licensePlate")))
@@ -84,16 +83,14 @@ public class VehicleService {
                 case null, default -> specification.and(VehicleSpecifications.mileageEqual(mileage));
             };
         }
-        if (specification == null) System.out.println("SPEC IS NULL");
         return specification;
     }
 
     public Page<Vehicle> searchVehicles(Integer page, HashMap<String, String> searchCriteria) {
-        Long userId = getUser().getId();
         Specification<Vehicle> specification = getSpecification(searchCriteria);
         System.out.println("SEARCH MAP " + searchCriteria);
         if (specification != null)
-            specification = specification.and(VehicleSpecifications.containsUserId(userId));
+            specification = specification.and(VehicleSpecifications.containsUserId(getUser()));
         else
             return null;
         return vehicleRepo.findAll(specification, getPage(page));
@@ -101,7 +98,6 @@ public class VehicleService {
 
     @Transactional
     public void addVehicle(CreateVehicleRequest request) {
-        Long userId = getUser().getId();
         Vehicle vehicle = new Vehicle(null,
                 request.getLicensePlate(),
                 request.getModel(),
@@ -111,7 +107,7 @@ public class VehicleService {
                 request.getMileage(),
                 request.getLastMaintenance(),
                 Instant.now(),
-                userId);
+                getUser());
         vehicleRepo.save(vehicle);
     }
 
@@ -119,8 +115,7 @@ public class VehicleService {
     public boolean deleteVehicle(HashMap<String, String> searchCriteria) {
         Specification<Vehicle> specification = getSpecification(searchCriteria);
         if (specification == null) return false;
-        Long userId = getUser().getId();
-        specification.and(VehicleSpecifications.containsUserId(userId));
+        specification.and(VehicleSpecifications.containsUserId(getUser()));
         List<Vehicle> vehiclesToDelete = vehicleRepo.findAll(specification);
         if (vehiclesToDelete.isEmpty()) return false;
         vehicleRepo.deleteAll(vehiclesToDelete);

@@ -47,19 +47,17 @@ public class UserService {
     @Transactional
     public boolean deleteUser(String username) {
         UserEntity user = userRepo.findByUsername(username);
-        System.out.println("FOUND USER " + user.getUsername());
         if (user != null) {
-            System.out.println("DELETING IN SERVICE ");
             userRepo.delete(user);
             return true;
         }
-        System.out.println("NOT WORKED OUT");
         return false;
     }
 
     @Transactional
     public boolean changeUsername(String oldUsername, String newUsername) {
-        if (userRepo.findByUsername(oldUsername) != null) {
+        if (userRepo.findByUsername(oldUsername) != null
+                && userRepo.findByUsername(newUsername) == null) {
             int changes = userRepo.updateUsername(newUsername, oldUsername);
             return changes > 0;
         } else return false;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from '../assets/api'
 import { useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Settings() {
     const [username, setUsername] = useState("");
@@ -117,86 +118,120 @@ function Settings() {
     }
 
     return (
-        <div>
-            <h2>Settings</h2>
-            <form onSubmit={handleSubmit}>
-
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-
-                <input
-                    type="email"
-                    placeholder="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
-
-                <button type="button" onClick={handleSubmit}>
-                    Change
-                </button>
-
-                <h3>User roles</h3>
-                <select
-                    multiple
-                    onChange={handleUserRolesChange}
-                    value={selectedUserRoles}
-                >
-                    {userRoles.map(role => (
-                        <option key={role} value={role}>{role}</option>
-                    ))}
-                </select>
-                <button type="button" onClick={removeRoles}>
-                    Remove Role
-                </button>
-
-                <h3>Available roles</h3>
-                <select
-                    multiple
-                    onChange={handleAvailableRolesChange}
-                    value={selectedAvailableRoles}
-                >
-                    {roles.map(role => (
-                        <option key={role} value={role}>{role}</option>
-                    ))}
-                </select>
-                <button type="button" onClick={addRoles}>
-                    Add Role
-                </button>
+        <div className="container mt-4">
+            <h2 className="mb-4">Settings</h2>
+            <form onSubmit={handleSubmit} className="mb-4">
+                <div className="mb-3">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <input
+                        type="password"
+                        className="form-control"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <input
+                        type="email"
+                        className="form-control"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit" className="btn btn-primary">Change</button>
             </form>
-            <button type="button" onClick={() => setIsPopUp(true)}>
+
+            <div className="row mb-4">
+                <div className="col-md-6">
+                    <h4>User Roles</h4>
+                    <select
+                        className="form-select"
+                        multiple
+                        onChange={handleUserRolesChange}
+                        value={selectedUserRoles}
+                        size={5}
+                    >
+                        {userRoles.map((role) => (
+                            <option key={role} value={role}>{role}</option>
+                        ))}
+                    </select>
+                    <button className="btn btn-danger mt-2" onClick={removeRoles}>
+                        Remove Selected Roles
+                    </button>
+                </div>
+
+                <div className="col-md-6">
+                    <h4>Available Roles</h4>
+                    <select
+                        className="form-select"
+                        multiple
+                        onChange={handleAvailableRolesChange}
+                        value={selectedAvailableRoles}
+                        size={5}
+                    >
+                        {roles.map((role) => (
+                            <option key={role} value={role}>{role}</option>
+                        ))}
+                    </select>
+                    <button className="btn btn-success mt-2" onClick={addRoles}>
+                        Add Selected Roles
+                    </button>
+                </div>
+            </div>
+
+            <button className="btn btn-outline-danger" onClick={() => setIsPopUp(true)}>
                 Delete User
             </button>
 
+            {/* Confirmation Modal */}
             {isPopUp && (
-                <div>
-                    <div>
-                        <h2>User Deletion</h2>
-                        <p>Are you sure?</p>
-                        <button onClick={() => {
-                                    setIsPopUp(false)
-                                    deleteUser();
-                                }
-                            }>
-                            Yes
-                        </button>
-                        <button onClick={() => setIsPopUp(false)}>
-                            No
-                        </button>
+                <div className="modal show fade d-block" tabIndex="-1">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Confirm Deletion</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setIsPopUp(false)}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>Are you sure you want to delete your account?</p>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    className="btn btn-danger"
+                                    onClick={() => {
+                                        setIsPopUp(false);
+                                        deleteUser();
+                                    }}
+                                >
+                                    Yes, delete
+                                </button>
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => setIsPopUp(false)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                    <div className="modal-backdrop fade show"></div>
                 </div>
             )}
         </div>

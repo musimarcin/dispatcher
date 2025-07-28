@@ -142,7 +142,7 @@ public class UserController {
                         message.append("username ");
                     }
                     else
-                        return new ResponseEntity<>("Failed to change username", HttpStatus.INTERNAL_SERVER_ERROR);
+                        return new ResponseEntity<>("Failed to change username or username already taken", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
                 if (!request.getPassword().isEmpty()) {
                     if (userService.changePassword(username, request.getPassword()))
