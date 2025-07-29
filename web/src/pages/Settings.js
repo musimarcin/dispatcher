@@ -77,8 +77,12 @@ function Settings() {
             username,
             password,
             email
-            }).then(navigate('/settings'))
-            .catch(err => alert(err.response?.data));
+            }).then(res => {
+                alert(res.data)
+                setUsername("")
+                setPassword("")
+                setEmail("")
+            }).catch(err => alert(err.response?.data));
     };
 
     const removeRoles = async (e) => {
@@ -128,7 +132,6 @@ function Settings() {
                         placeholder="Username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        required
                     />
                 </div>
                 <div className="mb-3">
@@ -138,7 +141,6 @@ function Settings() {
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        required
                     />
                 </div>
                 <div className="mb-3">
@@ -148,7 +150,6 @@ function Settings() {
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        required
                     />
                 </div>
                 <button type="submit" className="btn btn-primary">Change</button>

@@ -16,6 +16,7 @@ function Login() {
             password
         }).then(response => {
             alert(response.data);
+            window.location.reload();
             navigate('/');
         }).catch(err => alert(err.response?.data));
     };

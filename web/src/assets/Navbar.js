@@ -8,7 +8,7 @@ function Navbar({ isLoggedIn }) {
     const handleLogout = () => {
         api.post("/auth/logout", {})
         .then(response => {
-            alert(response.data);
+            window.location.reload();
             navigate('/login');
             localStorage.clear();
         }).catch(err => alert("Failed to logout", err));

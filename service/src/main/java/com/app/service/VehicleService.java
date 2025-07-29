@@ -5,7 +5,6 @@ import com.app.events.VehicleEvent;
 import com.app.model.Vehicle;
 import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
-import com.app.request.CreateVehicleRequest;
 import com.app.security.SecurityUtil;
 import com.app.specifications.VehicleSpecifications;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,7 +34,7 @@ public class VehicleService {
         this.eventPublisher = eventPublisher;
     }
 
-    public Pageable getPage(Integer page) {
+    private Pageable getPage(Integer page) {
         int pageNo = page < 1 ? 0 : page - 1;
         return PageRequest.of(pageNo, 10);
     }
@@ -101,17 +100,9 @@ public class VehicleService {
     }
 
     @Transactional
-    public void addVehicle(CreateVehicleRequest request) {
-        Vehicle vehicle = new Vehicle(null,
-                request.getLicensePlate(),
-                request.getModel(),
-                request.getManufacturer(),
-                request.getFuelCapacity(),
-                request.getAverageConsumption(),
-                request.getMileage(),
-                request.getLastMaintenance(),
-                Instant.now(),
-                getUser());
+    public void addVehicle(Vehicle vehicle) {
+        vehicle.setUserId(getUser());
+        vehicle.setCreatedAt(Instant.now());
         vehicleRepo.save(vehicle);
         VehicleEvent vehicleEvent = new VehicleEvent(
                 EventType.CREATED,

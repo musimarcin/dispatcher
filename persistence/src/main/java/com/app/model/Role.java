@@ -1,16 +1,9 @@
 package com.app.model;
 
-import jakarta.persistence.*;
-import lombok.Data;
+public enum Role {
 
-@Entity
-@Table(name = "roles")
-@Data
-public class Role {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private String name;
+    ROLE_ADMIN,
+    ROLE_DISPATCHER,
+    ROLE_DRIVER
 
 }

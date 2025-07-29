@@ -43,7 +43,7 @@ function Register() {
         }).then(response => {
             alert(response.data);
             navigate('/login');
-        }).catch(err => console.error("Register failed", err));
+        }).catch(err => alert(err.response?.data));
     };
 
     return (

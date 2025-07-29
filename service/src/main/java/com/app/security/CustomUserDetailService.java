@@ -3,7 +3,6 @@ package com.app.security;
 import com.app.model.Role;
 import com.app.repository.UserRepo;
 import com.app.model.UserEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -33,7 +32,7 @@ public class CustomUserDetailService implements UserDetailsService {
                     user.getUsername(),
                     user.getPassword(),
                     user.getRoles().stream().map((role) ->
-                            new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList())
+                            new SimpleGrantedAuthority(role.name())).collect(Collectors.toList())
             );
         } else {
             throw new UsernameNotFoundException("Invalid username or password");
@@ -41,6 +40,6 @@ public class CustomUserDetailService implements UserDetailsService {
     }
 
     private Collection<GrantedAuthority> mapRolesToAuthorities(List<Role> roles) {
-        return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
+        return roles.stream().map(role -> new SimpleGrantedAuthority(role.name())).collect(Collectors.toList());
     }
 }

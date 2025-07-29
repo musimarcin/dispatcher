@@ -1,9 +1,10 @@
 package com.app.controller;
 
+import com.app.dto.VehicleDto;
 import com.app.dto.VehiclesDto;
 import com.app.model.Vehicle;
-import com.app.request.CreateVehicleRequest;
 import com.app.service.VehicleService;
+import com.app.utils.converters.VehicleDtoToVehicle;
 import com.app.utils.converters.VehicleToVehicleDto;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -20,10 +21,12 @@ public class VehicleController {
 
     private final VehicleService vehicleService;
     private final VehicleToVehicleDto vehicleConverter;
+    private final VehicleDtoToVehicle vehicleDtoConverter;
 
-    public VehicleController(VehicleService vehicleService, VehicleToVehicleDto vehicleConverter) {
+    public VehicleController(VehicleService vehicleService, VehicleToVehicleDto vehicleConverter, VehicleDtoToVehicle vehicleDtoConverter) {
         this.vehicleService = vehicleService;
         this.vehicleConverter = vehicleConverter;
+        this.vehicleDtoConverter = vehicleDtoConverter;
     }
 
     @GetMapping
@@ -40,15 +43,14 @@ public class VehicleController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addVehicle(@RequestBody @Valid CreateVehicleRequest request, BindingResult bindingResult) {
+    public ResponseEntity<String> addVehicle(@RequestBody @Valid VehicleDto vehicleDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
-            bindingResult.getAllErrors().forEach(e -> {
-                errorMessage.append(e.getDefaultMessage()).append(" ");
-            });
+            bindingResult.getAllErrors().forEach(e ->
+                    errorMessage.append(e.getDefaultMessage()).append(" "));
             return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
         }
-        vehicleService.addVehicle(request);
+        vehicleService.addVehicle(vehicleDtoConverter.convert(vehicleDto));
         return new ResponseEntity<>("Vehicle added successfully", HttpStatus.CREATED);
     }
 
