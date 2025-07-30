@@ -33,6 +33,9 @@ function Navbar({ isLoggedIn }) {
                             <li className="nav-item">
                                 <Link className="nav-link" to="/settings">Settings</Link>
                             </li>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/route">Routes</Link>
+                            </li>
                         </ul>
 
                         <button className="btn btn-outline-light" onClick={handleLogout}>Logout</button>

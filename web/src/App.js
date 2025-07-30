@@ -6,12 +6,15 @@ import Register from './pages/Register';
 import Settings from './pages/Settings';
 import Dashboard from './pages/Dashboard';
 import Vehicle from './pages/Vehicle';
+import RouteMap from './pages/Route';
 import Navbar from './assets/Navbar';
 import ProtectedRoute from './assets/ProtectedRoute'
+import PublicRoute from './assets/PublicRoute'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         api.get("/auth/check")
@@ -19,7 +22,18 @@ function App() {
             setIsLoggedIn(res.data)
         })
         .catch(() => setIsLoggedIn(false))
+        .finally(() => setIsLoading(false))
     });
+
+    if (isLoading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -30,9 +44,17 @@ function App() {
                         <ProtectedRoute isLoggedIn={isLoggedIn}>
                             <Dashboard />
                         </ProtectedRoute>
-                    }/>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
+                    } />
+                    <Route path="/login" element={
+                        <PublicRoute isLoggedIn={isLoggedIn}>
+                            <Login />
+                        </PublicRoute>
+                    } />
+                    <Route path="/register" element={
+                        <PublicRoute isLoggedIn={isLoggedIn}>
+                            <Register />
+                        </PublicRoute>
+                    } />
                     <Route path="/settings" element={
                         <ProtectedRoute isLoggedIn={isLoggedIn}>
                             <Settings />
@@ -41,6 +63,11 @@ function App() {
                     <Route path="/vehicle" element={
                         <ProtectedRoute isLoggedIn={isLoggedIn}>
                             <Vehicle />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/route" element={
+                        <ProtectedRoute isLoggedIn={isLoggedIn}>
+                            <RouteMap />
                         </ProtectedRoute>
                     } />
                     <Route path="*" element={

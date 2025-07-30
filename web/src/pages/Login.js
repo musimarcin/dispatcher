@@ -17,7 +17,7 @@ function Login() {
         }).then(response => {
             alert(response.data);
             window.location.reload();
-            navigate('/');
+            window.location.href = '/';
         }).catch(err => alert(err.response?.data));
     };
 
