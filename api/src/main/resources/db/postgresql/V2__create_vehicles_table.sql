@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
     license_plate VARCHAR(20) UNIQUE NOT NULL,
     model VARCHAR(50) NOT NULL,
     manufacturer VARCHAR(50),
+    productionYear INT,
     fuel_capacity DECIMAL(5, 2),
     average_consumption DECIMAL(5, 2),
     mileage INT,

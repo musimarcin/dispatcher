@@ -47,53 +47,55 @@ function Register() {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-20 p-4 border rounded-lg shadow-lg">
-            <h2 className="text-2xl mb-4">Register</h2>
-            <form onSubmit={handleSubmit}>
+        <div className="d-flex justify-content-center align-items-center mt-5">
+            <div className="p-4 border rounded-lg shadow-lg">
+                <h2 className="mb-4">Register</h2>
+                <form onSubmit={handleSubmit}>
 
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-2 mb-4 border rounded"
-                    required
-                />
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="p-2 border rounded"
+                        required
+                    />
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-2 mb-4 border rounded"
-                    required
-                />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="p-2 border rounded mx-1"
+                        required
+                    />
 
-                <input
-                    type="email"
-                    placeholder="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-2 mb-4 border rounded"
-                    required
-                />
+                    <input
+                        type="email"
+                        placeholder="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="p-2 border rounded"
+                        required
+                    />
 
-                <Dropdown onSelect={handleRolesChange}>
-                    <Dropdown.Toggle variant="primary" id="dropdown-basic">
-                        {showSelected || "Select Role"}
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                        {roles.map(role => (
-                            <Dropdown.Item key={role} eventKey={role}>
-                                {role}
-                            </Dropdown.Item>
-                        ))}
-                    </Dropdown.Menu>
-                </Dropdown>
-                <button type="submit" className="p-20 w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Register
-                </button>
-            </form>
+                    <Dropdown onSelect={handleRolesChange} className="mt-2">
+                        <Dropdown.Toggle variant="primary" id="dropdown-basic">
+                            {showSelected || "Select Role"}
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            {roles.map(role => (
+                                <Dropdown.Item key={role} eventKey={role}>
+                                    {role}
+                                </Dropdown.Item>
+                            ))}
+                        </Dropdown.Menu>
+                    </Dropdown>
+                    <button type="submit" className="btn btn-primary mt-2">
+                        Register
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }

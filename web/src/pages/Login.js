@@ -22,32 +22,34 @@ function Login() {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-20 p-4 border rounded-lg shadow-lg">
-            <h2 className="text-2xl mb-4">Login</h2>
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-2 mb-4 border rounded"
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-2 mb-4 border rounded"
-                    required
-                />
-                <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Login
-                </button>
-            </form>
-                <button type="button" onClick={() => navigate('/register')} className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Register
-                </button>
+        <div className="d-flex justify-content-center align-items-center mt-5">
+            <div className="mw-25 p-4 border rounded shadow-lg">
+                <h2 className="mb-4">Login</h2>
+                <form onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="p-2 mb-4 border rounded"
+                        required
+                    />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="p-2 mb-4 border rounded mx-1"
+                        required
+                    />
+                    <button type="submit" className="btn btn-primary mb-1">
+                        Login
+                    </button>
+                </form>
+                    <button type="button" onClick={() => navigate('/register')} className="btn btn-primary">
+                        Register
+                    </button>
+                </div>
         </div>
     );
 }

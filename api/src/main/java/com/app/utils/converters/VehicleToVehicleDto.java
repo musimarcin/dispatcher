@@ -15,6 +15,7 @@ public class VehicleToVehicleDto implements Converter<Vehicle, VehicleDto> {
                 source.getLicensePlate(),
                 source.getModel(),
                 source.getManufacturer(),
+                source.getProductionYear(),
                 source.getFuelCapacity(),
                 source.getAverageConsumption(),
                 source.getMileage(),

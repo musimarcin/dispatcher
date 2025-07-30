@@ -22,6 +22,7 @@ public class Vehicle {
     private String licensePlate;
     private String model;
     private String manufacturer;
+    private Integer productionYear;
 
     @Column(precision = 5, scale = 2)
     private BigDecimal fuelCapacity;

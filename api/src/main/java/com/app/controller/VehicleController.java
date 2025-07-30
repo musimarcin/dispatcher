@@ -35,9 +35,9 @@ public class VehicleController {
         return new VehiclesDto(vehiclePage.map(vehicleConverter::convert));
     }
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     public VehiclesDto searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
-                                      @RequestBody @Valid HashMap<String, String> searchCriteria) {
+                                      @RequestBody HashMap<String, String> searchCriteria) {
         Page<Vehicle> vehiclePage = vehicleService.searchVehicles(page, searchCriteria);
         return new VehiclesDto(vehiclePage.map(vehicleConverter::convert));
     }

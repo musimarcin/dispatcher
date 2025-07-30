@@ -19,11 +19,6 @@ public class VehicleSpecifications {
                 builder.lessThan(root.get("fuelCapacity"), fuelCapacity);
     }
 
-    public static Specification<Vehicle> fuelCapacityEqual(BigDecimal fuelCapacity) {
-        return (root, query, builder) -> fuelCapacity == null ? null :
-                builder.equal(root.get("fuelCapacity"), fuelCapacity);
-    }
-
     public static Specification<Vehicle> averageConsumptionGreaterThan(BigDecimal averageConsumption) {
         return (root, query, builder) -> averageConsumption == null ? null :
                 builder.greaterThan(root.get("fuelCapacity"), averageConsumption);
@@ -32,11 +27,6 @@ public class VehicleSpecifications {
     public static Specification<Vehicle> averageConsumptionLessThan(BigDecimal averageConsumption) {
         return (root, query, builder) -> averageConsumption == null ? null :
                 builder.lessThan(root.get("fuelCapacity"), averageConsumption);
-    }
-
-    public static Specification<Vehicle> averageConsumptionEqual(BigDecimal averageConsumption) {
-        return (root, query, builder) -> averageConsumption == null ? null :
-                builder.equal(root.get("fuelCapacity"), averageConsumption);
     }
 
     public static Specification<Vehicle> mileageGreaterThan(Integer mileage) {
@@ -49,9 +39,14 @@ public class VehicleSpecifications {
                 builder.lessThan(root.get("mileage"), mileage);
     }
 
-    public static Specification<Vehicle> mileageEqual(Integer mileage) {
-        return (root, query, builder) -> mileage == null ? null :
-                builder.equal(root.get("mileage"), mileage);
+    public static Specification<Vehicle> productionYearGreaterThan(Integer productionYear) {
+        return (root, query, builder) -> productionYear == null ? null :
+                builder.greaterThan(root.get("productionYear"), productionYear);
+    }
+
+    public static Specification<Vehicle> productionYearLessThan(Integer productionYear) {
+        return (root, query, builder) -> productionYear == null ? null :
+                builder.lessThan(root.get("productionYear"), productionYear);
     }
 
     public static Specification<Vehicle> containsLicensePlate(String licensePlate) {

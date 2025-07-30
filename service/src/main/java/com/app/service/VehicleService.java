@@ -60,42 +60,52 @@ public class VehicleService {
         if (StringUtils.hasLength(searchCriteria.get("manufacturer")))
             specification = specification.and(VehicleSpecifications.containsManufacturer(searchCriteria.get("manufacturer")));
 
-        if (StringUtils.hasLength(searchCriteria.get("fuelCapacity"))) {
-            BigDecimal fuelCapacity = new BigDecimal(searchCriteria.get("fuelCapacity"));
-            specification = switch (searchCriteria.get("fuelCapacityOperator")) {
-                case ">" -> specification.and(VehicleSpecifications.fuelCapacityGreaterThan(fuelCapacity));
-                case "<" -> specification.and(VehicleSpecifications.fuelCapacityLessThan(fuelCapacity));
-                case null, default -> specification.and(VehicleSpecifications.fuelCapacityEqual(fuelCapacity));
-            };
-        }
+        if (StringUtils.hasLength(searchCriteria.get("productionYearFrom"))) {
+            Integer productionYearFrom = Integer.parseInt(searchCriteria.get("productionYearFrom"));
+            specification = specification.and(VehicleSpecifications.productionYearGreaterThan(productionYearFrom));
+        } else specification = specification.and(VehicleSpecifications.productionYearGreaterThan(1900));
 
-        if (StringUtils.hasLength(searchCriteria.get("averageConsumption"))) {
-            BigDecimal averageConsumption = new BigDecimal(searchCriteria.get("averageConsumption"));
-            specification = switch (searchCriteria.get("averageConsumptionOperator")) {
-                case ">" -> specification.and(VehicleSpecifications.averageConsumptionGreaterThan(averageConsumption));
-                case "<" -> specification.and(VehicleSpecifications.averageConsumptionLessThan(averageConsumption));
-                case null, default -> specification.and(VehicleSpecifications.averageConsumptionEqual(averageConsumption));
-            };
-        }
+        if (StringUtils.hasLength(searchCriteria.get("productionYearTo"))) {
+            Integer productionYearTo = Integer.parseInt(searchCriteria.get("productionYearTo"));
+            specification = specification.and(VehicleSpecifications.productionYearLessThan(productionYearTo));
+        } else specification = specification.and(VehicleSpecifications.productionYearLessThan(2100));
 
-        if (StringUtils.hasLength(searchCriteria.get("mileage"))) {
-            Integer mileage = Integer.parseInt(searchCriteria.get("mileage"));
-            specification = switch (searchCriteria.get("mileageOperator")) {
-                case ">" -> specification.and(VehicleSpecifications.mileageGreaterThan(mileage));
-                case "<" -> specification.and(VehicleSpecifications.mileageLessThan(mileage));
-                case null, default -> specification.and(VehicleSpecifications.mileageEqual(mileage));
-            };
-        }
+        if (StringUtils.hasLength(searchCriteria.get("fuelCapacityFrom"))) {
+            BigDecimal fuelCapacityFrom = new BigDecimal(searchCriteria.get("fuelCapacityFrom"));
+            specification = specification.and(VehicleSpecifications.fuelCapacityGreaterThan(fuelCapacityFrom));
+        } else specification = specification.and(VehicleSpecifications.fuelCapacityGreaterThan(BigDecimal.ZERO));
+
+        if (StringUtils.hasLength(searchCriteria.get("fuelCapacityTo"))) {
+            BigDecimal fuelCapacityTo = new BigDecimal(searchCriteria.get("fuelCapacityTo"));
+            specification = specification.and(VehicleSpecifications.fuelCapacityLessThan(fuelCapacityTo));
+        } else specification = specification.and(VehicleSpecifications.fuelCapacityLessThan(BigDecimal.valueOf(10000)));
+
+        if (StringUtils.hasLength(searchCriteria.get("averageConsumptionFrom"))) {
+            BigDecimal averageConsumptionFrom = new BigDecimal(searchCriteria.get("averageConsumptionFrom"));
+            specification = specification.and(VehicleSpecifications.averageConsumptionGreaterThan(averageConsumptionFrom));
+        } else specification = specification.and(VehicleSpecifications.averageConsumptionGreaterThan(BigDecimal.ZERO));
+
+        if (StringUtils.hasLength(searchCriteria.get("averageConsumptionTo"))) {
+            BigDecimal averageConsumptionTo = new BigDecimal(searchCriteria.get("averageConsumptionTo"));
+            specification = specification.and(VehicleSpecifications.averageConsumptionLessThan(averageConsumptionTo));
+        } else specification = specification.and(VehicleSpecifications.averageConsumptionLessThan(BigDecimal.valueOf(1000)));
+
+        if (StringUtils.hasLength(searchCriteria.get("mileageFrom"))) {
+            Integer mileageFrom = Integer.parseInt(searchCriteria.get("mileageFrom"));
+            specification = specification.and(VehicleSpecifications.mileageGreaterThan(mileageFrom));
+        } else specification = specification.and(VehicleSpecifications.mileageGreaterThan(0));
+
+        if (StringUtils.hasLength(searchCriteria.get("mileageTo"))) {
+            Integer mileageTo = Integer.parseInt(searchCriteria.get("mileageTo"));
+            specification = specification.and(VehicleSpecifications.mileageLessThan(mileageTo));
+        } else specification = specification.and(VehicleSpecifications.mileageLessThan(Integer.MAX_VALUE));
+
         return specification;
     }
 
     public Page<Vehicle> searchVehicles(Integer page, HashMap<String, String> searchCriteria) {
         Specification<Vehicle> specification = getSpecification(searchCriteria);
-        System.out.println("SEARCH MAP " + searchCriteria);
-        if (specification != null)
-            specification = specification.and(VehicleSpecifications.containsUserId(getUser()));
-        else
-            return null;
+        specification = specification.and(VehicleSpecifications.containsUserId(getUser()));
         return vehicleRepo.findAll(specification, getPage(page));
     }
 

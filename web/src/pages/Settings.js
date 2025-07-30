@@ -197,9 +197,8 @@ function Settings() {
                 Delete User
             </button>
 
-            {/* Confirmation Modal */}
             {isPopUp && (
-                <div className="modal show fade d-block" tabIndex="-1">
+                <div className="modal show d-block" tabIndex="-1">
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -232,7 +231,6 @@ function Settings() {
                             </div>
                         </div>
                     </div>
-                    <div className="modal-backdrop fade show"></div>
                 </div>
             )}
         </div>
