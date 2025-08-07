@@ -1,40 +1,30 @@
-package com.app.model;
+package com.app.dto;
 
-import jakarta.persistence.*;
+import com.app.model.RouteStatus;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
 
-@Entity
-@Table(name = "routes")
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
-public class Route {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class RouteDto {
     private Long id;
+    @NotBlank(message = "Start location is required")
     private String startLocation;
+    @NotBlank(message = "End location is required")
     private String endLocation;
-
-    @Column(precision = 6, scale = 2)
     private BigDecimal distance;
-
     private Integer estimatedTime;
+    @NotBlank(message = "Starting time is required")
     private Date startTime;
     private Date endTime;
     private RouteStatus status;
     private Instant createdAt;
-
-    @ManyToOne
-    @JoinColumn(name = "vehicle_id", nullable = false)
-    private Vehicle vehicle;
-
+    @NotBlank(message = "Vehicle plate is required")
+    private String licensePlate;
     private Long userId;
-
 }
