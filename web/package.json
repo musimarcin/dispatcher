@@ -11,6 +11,7 @@
     "bootstrap": "^5.3.7",
     "leaflet": "^1.9.4",
     "leaflet-providers": "^2.0.0",
+    "leaflet-routing-machine": "^3.2.12",
     "react": "^19.1.0",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.0",

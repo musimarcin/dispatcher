@@ -24,7 +24,7 @@ function Settings() {
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => alert(err.response?.data)); //question mars to check if previous part returned null
+            }).catch(err => alert(err.response?.data)); //question marks to check if previous part returned null
         }
 
         const storedUserRoles = localStorage.getItem("userRoles");

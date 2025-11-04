@@ -55,16 +55,16 @@ public class RouteController {
             StringBuilder errorMessage = new StringBuilder();
             bindingResult.getAllErrors().forEach(e ->
                     errorMessage.append(e.getDefaultMessage()).append(" "));
-            return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
         }
         routeService.addRoute(routeDtoConverter.convert(routeDto));
-        return new ResponseEntity<>("Route added successfully", HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Route added successfully");
     }
 
     @DeleteMapping
     public ResponseEntity<String> deleteRoute(@RequestBody @Valid HashMap<String, String> searchCriteria) {
         boolean isDeleted = routeService.deleteRoute(searchCriteria);
-        if (isDeleted) return new ResponseEntity<>("Route deleted successfully", HttpStatus.OK);
-        return new ResponseEntity<>("Route not found", HttpStatus.NOT_FOUND);
+        if (isDeleted) return ResponseEntity.status(HttpStatus.OK).body("Route deleted successfully");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Route not found");
     }
 }

@@ -34,8 +34,8 @@ public class NotificationController {
         String username = SecurityUtil.getSessionUser();
         if (username != null) {
             if (notificationService.readNotification(notificationDto.getId()))
-                return new ResponseEntity<>("Message marked as read.", HttpStatus.OK);
+                return ResponseEntity.status(HttpStatus.OK).body("Message marked as read.");
         }
-        return new ResponseEntity<>("You are not logged in.", HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not logged in.");
     }
 }

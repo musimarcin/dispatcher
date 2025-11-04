@@ -113,7 +113,7 @@ public class UserService {
         List<String> res = new ArrayList<>();
         for (Role r : Role.values())
             res.add(r.name().substring(5));
-        res.removeFirst(); //removing role admin
+        res.remove(0); //removing role admin
         return res;
     }
 

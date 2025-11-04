@@ -48,17 +48,17 @@ public class VehicleController {
             StringBuilder errorMessage = new StringBuilder();
             bindingResult.getAllErrors().forEach(e ->
                     errorMessage.append(e.getDefaultMessage()).append(" "));
-            return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
         }
         vehicleService.addVehicle(vehicleDtoConverter.convert(vehicleDto));
-        return new ResponseEntity<>("Vehicle added successfully", HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Vehicle added successfully");
     }
 
     @DeleteMapping
     public ResponseEntity<String> deleteVehicle(@RequestBody @Valid HashMap<String, String> searchCriteria) {
         boolean isDeleted = vehicleService.deleteVehicle(searchCriteria);
-        if (isDeleted) return new ResponseEntity<>("Vehicle deleted successfully", HttpStatus.OK);
-        return new ResponseEntity<>("Vehicle not found", HttpStatus.NOT_FOUND);
+        if (isDeleted) return ResponseEntity.status(HttpStatus.OK).body("Vehicle deleted successfully");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
     }
 
 }

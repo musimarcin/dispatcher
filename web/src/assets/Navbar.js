@@ -21,11 +21,11 @@ function Navbar({ isLoggedIn }) {
                 { isLoggedIn ?
                 <>
                     <Link className="navbar-brand" to="/">Dispatcher</Link>
-                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target='#navbarNav>
+                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span className="navbar-toggler-icon"></span>
                     </button>
 
-                    <div className="collapse navbar-collapse" id='navbarNav'>
+                    <div className="collapse navbar-collapse" id="navbarNav">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                             <li className="nav-item">
                                 <Link className="nav-link" to="/vehicle">Vehicles</Link>

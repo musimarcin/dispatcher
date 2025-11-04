@@ -1,0 +1,110 @@
+services:
+  # PostgreSQL
+  postgres:
+    image: postgres:17
+    container_name: dispatcher-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: psql_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dispatcher-net
+
+  # MongoDB
+  mongo:
+    image: mongo:7
+    container_name: dispatcher-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - dispatcher-net
+
+  # Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./api:/app/api
+      - ./service:/app/service
+      - ./persistence:/app/persistence
+    container_name: dispatcher-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/psql_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/dispatcher
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - postgres
+      - mongo
+    networks:
+      - dispatcher-net
+
+  # Frontend
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: dispatcher-frontend
+    volumes:
+      - ./web:/app
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - dispatcher-net
+
+  # OSRM for routing
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: osrm
+    command: >
+      osrm-routed --algorithm mld /data/poland-latest.osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./osrm-data:/data
+    networks:
+      - dispatcher-net
+
+
+  # nominatim for geocoding
+#  nominatim:
+#    image: mediagis/nominatim:5.1
+#    container_name: nominatim
+#    ports:
+#      - "7070:8080"
+#    environment:
+#      - NOMINATIM_IMPORT_WIKIPEDIA=false
+#      - NOMINATIM_PBF_DATA=/data/poland-latest.osm.pbf
+#      - PBF_PATH=/data/poland-latest.osm.pbf
+#    volumes:
+#      - ./osrm-data:/data
+#      - ./nominatim-data:/var/lib/postgresql/14/main
+#    restart: unless-stopped
+#    networks:
+#      - dispatcher-net
+
+
+volumes:
+  postgres_data:
+  mongo_data:
+
+
+networks:
+  dispatcher-net:
+    driver: bridge

@@ -5,9 +5,11 @@ import com.app.model.Route;
 import com.app.model.Vehicle;
 import com.app.service.VehicleService;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
+@Component
 public class RouteDtoToRoute implements Converter<RouteDto, Route> {
 
     private final VehicleService vehicleService;
