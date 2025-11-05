@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "routes")
@@ -19,10 +21,8 @@ public class Route {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String startLocation;
-    private String endLocation;
 
-    @Column(precision = 6, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal distance;
 
     private Integer estimatedTime;
@@ -34,6 +34,10 @@ public class Route {
     @ManyToOne
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
+
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sequence ASC")
+    private List<RoutePoints> waypoints = new ArrayList<>();
 
     private Long userId;
 

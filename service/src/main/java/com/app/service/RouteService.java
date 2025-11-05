@@ -61,17 +61,11 @@ public class RouteService {
         if (vehicleRepo.findByLicensePlate(licensePlate).isPresent()) {
             vehicle = vehicleRepo.findByLicensePlate(licensePlate).get();
         } else return null;
-        return routeRepo.findByVehicleId(vehicle, getPage(page));
+        return routeRepo.findByVehicle(vehicle, getPage(page));
     }
 
     private Specification<Route> getSpecification(HashMap<String, String> searchCriteria) {
         Specification<Route> specification = Specification.where(null);
-
-        if (StringUtils.hasText(searchCriteria.get("startLocation")))
-            specification = specification.and(RouteSpecifications.containsStartLocation(searchCriteria.get("startLocation")));
-
-        if (StringUtils.hasText(searchCriteria.get("endLocation")))
-            specification = specification.and(RouteSpecifications.containsEndLocation(searchCriteria.get("endLocation")));
 
         if (StringUtils.hasText(searchCriteria.get("status")))
             specification = specification.and(RouteSpecifications.containsStatus(searchCriteria.get("status")));

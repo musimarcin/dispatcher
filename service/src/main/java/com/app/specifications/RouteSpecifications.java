@@ -11,16 +11,6 @@ import java.util.Date;
 @Component
 public class RouteSpecifications {
 
-    public static Specification<Route> containsStartLocation(String startLocation) {
-        return (root, query, builder) -> startLocation == null || startLocation.isEmpty() ? null :
-                builder.like(builder.lower(root.get("startLocation")), "%" + startLocation.toLowerCase() + "%");
-    }
-
-    public static Specification<Route> containsEndLocation(String endLocation) {
-        return (root, query, builder) -> endLocation == null || endLocation.isEmpty() ? null :
-                builder.like(builder.lower(root.get("endLocation")), "%" + endLocation.toLowerCase() + "%");
-    }
-
     public static Specification<Route> containsStatus(String status) {
         return (root, query, builder) -> status == null || status.isEmpty() ? null :
                 builder.like(builder.lower(root.get("status")), "%" + status.toLowerCase() + "%");

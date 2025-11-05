@@ -57,8 +57,6 @@ public class NominatimProxyController {
             params.forEach((key, value) -> {
                 if (value != null && !value.isBlank()) builder.queryParam(key, value);
             });
-            System.out.println(builder.toUriString());
-            System.out.println(builder.toString());
             ResponseEntity<String> response = getStringResponseEntity(builder);
             JsonNode json = objectMapper.readTree(response.getBody());
             if (json.isArray() && !json.isEmpty()) {

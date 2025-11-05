@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS maintenance_records (
     mileage INT,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    vehicle_id INT REFERENCES vehicles(id)
+    vehicle_id BIGINT REFERENCES vehicles(id)
 );

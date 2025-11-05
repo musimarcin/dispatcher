@@ -47,7 +47,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/osrm/**", "/api/nominatim/**").permitAll()
                     .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/roles").permitAll()
-                    .requestMatchers("/api/auth/**", "/api/vehicles/**", "/api/notifications/**").authenticated()
+                    .requestMatchers("/api/auth/**", "/api/vehicles/**", "/api/notifications/**", "/api/route/**").authenticated()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .anyRequest().denyAll()
             )

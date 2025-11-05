@@ -19,6 +19,24 @@ function Route() {
 
     const [suggestions, setSuggestions] = useState([]);
 
+    const [vehicles, setVehicles] = useState([]);
+
+    const [selectedVehicle, setSelectedVehicle] = useState({
+        licensePlate: "",
+        model: "",
+        manufacturer: "",
+        productionYear: "",
+        fuelCapacity: "",
+        averageConsumption: "",
+        mileage: "",
+        lastMaintenance: "",
+    });
+
+    const [routes, setRoutes] = useState([]);
+
+    const [distance, setDistance] = useState([]);
+    const [estimatedTime, setEstimatedTime] = useState([]);
+
     useEffect(() => {
 
         const map = L.map('map').setView([52.2297, 21.0122], 12);
@@ -32,6 +50,10 @@ function Route() {
         }).addTo(map);
 
         mapRef.current = map;
+
+        api.get("/vehicles")
+        .then(res => setVehicles(res.data.vehicleDtoList))
+        .catch(err => alert(err.response?.data))
 
         return () => {
             if (routingControlRef.current) routingControlRef.current.remove();
@@ -54,9 +76,10 @@ function Route() {
     });
 
     const addLocation = () => {
+        const nextId = locations.length + 1;
         setLocations((prev) => [
             ...prev,
-            { id: Date.now(), query: "", street: "", city: "", county: "", state: "", country: "", postalCode: "", coords: null },
+            { id: nextId, query: "", street: "", city: "", county: "", state: "", country: "", postalCode: "", coords: null },
         ]);
     };
 
@@ -111,7 +134,6 @@ function Route() {
         }).then(response => {
             const results = response.data
             if (results.length > 0) {
-                console.log(results);
                 const { lat, lon, display_name } = results[0];
                 setLocations((prev) =>
                     prev.map((loc) =>
@@ -124,7 +146,6 @@ function Route() {
             }
         }).catch(err => alert(err.response?.data));
     };
-
 
     const updateRoute = () => {
         const coordsArray = locations.filter((l) => l.coords).map((l) => l.coords);
@@ -145,23 +166,17 @@ function Route() {
                 router: L.Routing.osrmv1({ serviceUrl: "http://localhost:8080/osrm/route/v1" }),
                 createMarker: (i, wp) => L.marker(wp.latLng, { icon: customIcon, draggable: true }),
             }).addTo(mapRef.current);
+            routingControlRef.current.on('routesfound', function (e) {
+              const routes = e.routes;
+              const routeDistance = (routes[0].summary.totalDistance / 1000).toFixed(2);
+              const routeDuration = routes[0].summary.totalTime;
+              setDistance(routeDistance);
+              setEstimatedTime(routeDuration);
+            })
         }
         const group = new L.featureGroup(waypoints.map((c) => L.marker(c)));
         mapRef.current.fitBounds(group.getBounds(), { padding: [50, 50] });
     }
-
-    const handleVehicleChange = (e) => {
-        const vehicleId = e.target.value;
-        setSelectedVehicle(vehicleId);
-
-        if (vehicleId) {
-            api.get(`/route/vehicle?{licensePlate}`)
-                .then(res => setRoutes(res.data))
-                .catch(err => console.error(err));
-        } else {
-            setRoutes([]);
-        }
-    };
 
     const displayRouteOnMap = (route) => {
         if (!mapRef.current || !route.coords) return;
@@ -181,6 +196,56 @@ function Route() {
         }
     };
 
+    const handleVehicleChange = (e) => {
+        const vehiclePlate = e.target.value;
+        setSelectedVehicle(prev => ({
+            ...prev, licensePlate: vehiclePlate
+        }));
+
+        if (vehiclePlate) {
+            api.get(`/route/vehicle?licensePlate=${vehiclePlate}`)
+                .then(res => setRoutes(res.data.routeDtoList))
+                .catch(err => alert(err.response?.data));
+        } else {
+            setRoutes([]);
+        }
+    };
+
+    const getCoordsString = (id) => {
+        const loc = locations.find(location => location.id === id);
+        return loc?.coords ? `${loc.coords.lat},${loc.coords.lon}` : null;
+    };
+
+    const addLocationToVehicle = () => {
+        const vehicleStart = getCoordsString(1);
+        const vehicleEnd = getCoordsString(2);
+        if (!selectedVehicle || !vehicleStart || !vehicleEnd) {
+            alert("Please make sure to select both start and end locations, and a vehicle.");
+            return;
+        }
+        const startTime = new Date();
+        const endTime = new Date(startTime.getTime() + estimatedTime * 1000);
+        const newRoute = {
+            id: routes.length + 1,
+            distance,
+            estimatedTime,
+            startTime,
+            endTime,
+            status: "ACTIVE",
+            createdAt: new Date(),
+            licensePlate: selectedVehicle.licensePlate,
+            waypoints: locations.map((loc, i) => ({
+                name: loc.name,
+                latitude: loc.coords.lat,
+                longitude: loc.coords.lng,
+                sequence: i + 1,
+            }))
+        };
+        api.post("/route", newRoute)
+        .then(res => alert(res.data))
+        .catch(err => alert(err.response?.data))
+    }
+
 
     return (
         <>
@@ -197,8 +262,8 @@ function Route() {
                     >
                         <option value="">-- Choose Vehicle --</option>
                             {vehicles.map((v) => (
-                                <option key={v.id} value={v.id}>
-                                    {v.name}
+                                <option key={v.licensePlate} value={v.licensePlate}>
+                                    {v.model} ({v.licensePlate})
                                 </option>
                             ))}
                     </select>
@@ -219,9 +284,8 @@ function Route() {
                             {routes.map((r) => (
                                 <tr key={r.id}>
                                     <td>{r.id}</td>
-                                    <td>{r.start}</td>
-                                    <td>{r.finish}</td>
-                                    <td>{r.distance}</td>
+                                    <td>{r.startLocation}</td>
+                                    <td>{r.endLocation}</td>
                                     <td>{new Date(r.createdAt).toLocaleString()}</td>
                                 </tr>
                             ))}
@@ -274,17 +338,21 @@ function Route() {
                                 className="mr-2 p-2 border rounded" />
 
                     </div>
-                                <button className="btn btn-primary mt-2 mr-4" onClick={() => handleStructuredSearch(loc.id)}>
-                                    Structured Search
-                                </button>
-                    <button className="btn btn-danger mt-2" onClick={() => removeLocation(loc.id)}>
-                        Remove Location
-                    </button>
+                        <button className="btn btn-primary mt-2" onClick={() => handleStructuredSearch(loc.id)}>
+                            Structured Search
+                        </button>
+                        <button className="btn btn-danger mt-2 ml-2" onClick={() => removeLocation(loc.id)}>
+                            Remove Location
+                        </button>
                 </div>
             ))}
 
             <button className="btn btn-success m-3" onClick={addLocation}>
                 Add Location
+            </button>
+
+            <button className="btn btn-success m-3 ml-2" onClick={addLocationToVehicle}>
+                Add Location to Vehicle
             </button>
 
             <div id="map"/>
