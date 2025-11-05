@@ -43,11 +43,11 @@ public class NotificationEventListener {
     public void handleRouteEvent(RouteEvent event) {
         String message = switch (event.eventType()) {
             case CREATED -> "New route from " + event.route().getWaypoints().stream().findFirst() +
-                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1);
+                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName();
             case UPDATED -> "Route updated: " + event.route().getWaypoints().stream().findFirst() +
-                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1);
+                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName();
             case DELETED -> "Route deleted: " + event.route().getWaypoints().stream().findFirst() +
-                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1);
+                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName();
         };
 
         Notification notification = new Notification(

@@ -25,7 +25,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RouteService {
@@ -155,13 +155,9 @@ public class RouteService {
     }
 
     @Transactional
-    public boolean deleteRoute(HashMap<String, String> searchCriteria) {
-        Specification<Route> specification = getSpecification(searchCriteria);
-        if (specification == null) return false;
-        specification.and(RouteSpecifications.containsUserId(getUser()));
-        List<Route> routesToDelete = routeRepo.findAll(specification);
-        if (routesToDelete.isEmpty()) return false;
-        routeRepo.deleteAll(routesToDelete);
+    public boolean deleteRoute(Long id) {
+        Optional<Route> route = routeRepo.findById(id);
+        route.ifPresent(routeRepo::delete);
         return true;
     }
 }

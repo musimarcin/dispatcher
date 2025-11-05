@@ -3,7 +3,7 @@ import Vehicles from "../assets/Vehicles"
 import Notifications from "../assets/Notifications"
 import "bootstrap/dist/css/bootstrap.min.css";
 
-function Dashboard() {
+function Dashboard({showToast}) {
     const [tab, setTab] = useState("vehicles");
 
     return (
@@ -31,11 +31,11 @@ function Dashboard() {
             </ul>
 
             {tab === "vehicles" && (
-                <Vehicles />
+                <Vehicles showToast={showToast} />
             )}
 
             {tab === "notifications" && (
-                <Notifications />
+                <Notifications showToast={showToast} />
             )}
         </div>
     );

@@ -3,7 +3,7 @@ import api from '../assets/api'
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function Login() {
+function Login({showToast}) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
@@ -15,10 +15,10 @@ function Login() {
             username,
             password
         }).then(response => {
-            alert(response.data);
+            showToast(response.data, "success");
             window.location.reload();
             window.location.href = '/';
-        }).catch(err => alert(err.response?.data));
+        }).catch(err => showToast(err.response?.data, "error"));
     };
 
     return (

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import SearchVehicle from "../assets/SearchVehicle"
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function Vehicle() {
+function Vehicle({showToast}) {
     const [vehicle, setVehicle] = useState({
         licensePlate: "",
         model: "",
@@ -38,9 +38,9 @@ function Vehicle() {
             lastMaintenance: vehicle.lastMaintenance || null,
         })
         .then(res => {
-            alert(res.data);
+            showToast(res.data, "success");
             navigate("/");
-        }).catch(err => alert(err.response?.data));
+        }).catch(err => showToast(err.response?.data, "error"));
     };
 
     return (
@@ -143,7 +143,7 @@ function Vehicle() {
         </div>
 
         <div className="border rounded shadow m-5">
-            <SearchVehicle />
+            <SearchVehicle showToast={showToast} />
         </div>
         </>
     );

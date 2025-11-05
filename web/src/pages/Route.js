@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import markerImg from '../assets/marker-icon.png';
 import shadowImg from '../assets/marker-shadow.png';
 
-function Route() {
+function Route({showToast}) {
 
     const mapRef = useRef(null);
     const routingControlRef = useRef(null);
@@ -53,7 +53,7 @@ function Route() {
 
         api.get("/vehicles")
         .then(res => setVehicles(res.data.vehicleDtoList))
-        .catch(err => alert(err.response?.data))
+        .catch(err => showToast(err.response?.data, "error"))
 
         return () => {
             if (routingControlRef.current) routingControlRef.current.remove();
@@ -102,7 +102,7 @@ function Route() {
         api.get(`/nominatim?q=${value}`)
         .then(response => {
             setSuggestions(response.data.map((s) => ({ ...s, locId: id})))
-        }).catch(err => alert(err.response?.data))
+        }).catch(err => showToast(err.response?.data, "error"))
     };
 
     const handleSuggestionClick = (s) => {
@@ -144,7 +144,7 @@ function Route() {
                 )
                 updateRoute();
             }
-        }).catch(err => alert(err.response?.data));
+        }).catch(err => showToast(err.response?.data, "error"));
     };
 
     const updateRoute = () => {
@@ -167,11 +167,11 @@ function Route() {
                 createMarker: (i, wp) => L.marker(wp.latLng, { icon: customIcon, draggable: true }),
             }).addTo(mapRef.current);
             routingControlRef.current.on('routesfound', function (e) {
-              const routes = e.routes;
-              const routeDistance = (routes[0].summary.totalDistance / 1000).toFixed(2);
-              const routeDuration = routes[0].summary.totalTime;
-              setDistance(routeDistance);
-              setEstimatedTime(routeDuration);
+                const routes = e.routes;
+                const routeDistance = (routes[0].summary.totalDistance / 1000).toFixed(2);
+                const routeDuration = routes[0].summary.totalTime;
+                setDistance(routeDistance);
+                setEstimatedTime(routeDuration);
             })
         }
         const group = new L.featureGroup(waypoints.map((c) => L.marker(c)));
@@ -198,14 +198,13 @@ function Route() {
 
     const handleVehicleChange = (e) => {
         const vehiclePlate = e.target.value;
-        setSelectedVehicle(prev => ({
-            ...prev, licensePlate: vehiclePlate
-        }));
+        const vehicle = vehicles.find(v => v.licensePlate === vehiclePlate);
+        setSelectedVehicle(vehicle);
 
         if (vehiclePlate) {
             api.get(`/route/vehicle?licensePlate=${vehiclePlate}`)
                 .then(res => setRoutes(res.data.routeDtoList))
-                .catch(err => alert(err.response?.data));
+                .catch(err => showToast(err.response?.data, "error"));
         } else {
             setRoutes([]);
         }
@@ -217,10 +216,8 @@ function Route() {
     };
 
     const addLocationToVehicle = () => {
-        const vehicleStart = getCoordsString(1);
-        const vehicleEnd = getCoordsString(2);
-        if (!selectedVehicle || !vehicleStart || !vehicleEnd) {
-            alert("Please make sure to select both start and end locations, and a vehicle.");
+        if (!selectedVehicle) {
+            showToast("Please make sure to select a vehicle.", "error");
             return;
         }
         const startTime = new Date();
@@ -235,15 +232,22 @@ function Route() {
             createdAt: new Date(),
             licensePlate: selectedVehicle.licensePlate,
             waypoints: locations.map((loc, i) => ({
-                name: loc.name,
+                name: loc.query,
                 latitude: loc.coords.lat,
-                longitude: loc.coords.lng,
+                longitude: loc.coords.lon,
                 sequence: i + 1,
             }))
         };
+
         api.post("/route", newRoute)
-        .then(res => alert(res.data))
-        .catch(err => alert(err.response?.data))
+        .then(res => showToast(res.data, "success"))
+        .catch(err => showToast(err.response?.data, "error"))
+    }
+
+    const removeRoute = (id) => {
+        api.delete(`/route?id=${id}`)
+        .then(res => showToast(res.data, "success"))
+        .catch(err => showToast(err.response?.data, "error"))
     }
 
 
@@ -257,7 +261,7 @@ function Route() {
                     <select
                         id="vehicle"
                         className="form-select"
-                        value={selectedVehicle}
+                        value={selectedVehicle?.licensePlate || ""}
                         onChange={handleVehicleChange}
                     >
                         <option value="">-- Choose Vehicle --</option>
@@ -275,29 +279,48 @@ function Route() {
                             <tr>
                                 <th>Route ID</th>
                                 <th>Start</th>
+                                <th>Through</th>
                                 <th>Finish</th>
                                 <th>Distance (km)</th>
+                                <th>Estimated Time</th>
                                 <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {routes.map((r) => (
-                                <tr key={r.id}>
-                                    <td>{r.id}</td>
-                                    <td>{r.startLocation}</td>
-                                    <td>{r.endLocation}</td>
-                                    <td>{new Date(r.createdAt).toLocaleString()}</td>
-                                </tr>
-                            ))}
+                            {routes.map((r) => {
+                                const firstWaypoint = r.waypoints?.[0]?.name || "";
+                                const through = r.waypoints?.slice(1, -1).map(wp => wp.name).join(", ") || "";
+                                const lastWaypoint = r.waypoints?.[r.waypoints.length - 1]?.name || "";
+
+                                return (
+                                    <tr key={r.id}>
+                                        <td>{r.id}</td>
+                                        <td>{firstWaypoint}</td>
+                                        <td>{through}</td>
+                                        <td>{lastWaypoint}</td>
+                                        <td>{r.distance}</td>
+                                        <td>{r.estimatedTime}</td>
+                                        <td>{new Date(r.createdAt).toLocaleString()}</td>
+                                        <td>
+                                            <button className="btn btn-danger mt-2" onClick={() => removeRoute(r.id)}>
+                                                Remove Route
+                                            </button>
+                                            <button className="btn btn-primary mt-2" onClick={updateRoute}>
+                                                Show on map
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                )}
+                            )}
                         </tbody>
                     </table>
                 ) : (
                     selectedVehicle && <p>No routes available for this vehicle.</p>
                 )}
             </div>
-
             {locations.map((loc) => (
-                <div key={loc.id} className="mb-3 border p-2 rounded">
+                <div key={loc.id} className="container mb-3 border p-2 rounded">
                     <input
                         type="text"
                         placeholder="Search..."
@@ -338,24 +361,29 @@ function Route() {
                                 className="mr-2 p-2 border rounded" />
 
                     </div>
-                        <button className="btn btn-primary mt-2" onClick={() => handleStructuredSearch(loc.id)}>
+                        <button className="btn btn-primary mt-2 me-1" onClick={() => handleStructuredSearch(loc.id)}>
                             Structured Search
                         </button>
-                        <button className="btn btn-danger mt-2 ml-2" onClick={() => removeLocation(loc.id)}>
-                            Remove Location
-                        </button>
+                        {locations.length > 2 && (
+                            <button
+                                className="btn btn-danger mt-2"
+                                onClick={() => removeLocation(loc.id)}
+                            >
+                                Remove Location
+                            </button>
+                        )}
                 </div>
             ))}
+            <div className="container">
+                <button className="btn btn-success m-1" onClick={addLocation}>
+                    Add Location
+                </button>
 
-            <button className="btn btn-success m-3" onClick={addLocation}>
-                Add Location
-            </button>
-
-            <button className="btn btn-success m-3 ml-2" onClick={addLocationToVehicle}>
-                Add Location to Vehicle
-            </button>
-
-            <div id="map"/>
+                <button className="btn btn-success ms-1" onClick={addLocationToVehicle}>
+                    Add Location to Vehicle
+                </button>
+            </div>
+            <div id="map" className="d-flex justify-content-center"/>
         </>
     );
 }

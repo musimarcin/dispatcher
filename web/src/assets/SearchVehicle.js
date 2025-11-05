@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "./api"
 
-function SearchVehicle() {
+function SearchVehicle({showToast}) {
     const [search, setSearch] = useState({
         licensePlate: "",
         model: "",
@@ -29,7 +29,7 @@ function SearchVehicle() {
         console.log(search)
         api.post(`/vehicles/search?page=${page}`, search)
         .then(res => setVehicles(res.data)
-        ).catch(err => alert(err.response?.data));
+        ).catch(err => showToast(err.response?.data, "error"));
     };
 
     return (

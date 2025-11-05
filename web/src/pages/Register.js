@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Dropdown from 'react-bootstrap/Dropdown';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function Register() {
+function Register({showToast}) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [email, setEmail] = useState("");
@@ -23,7 +23,7 @@ function Register() {
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => alert(err.response?.data));
+            }).catch(err => showToast(err.response?.data, "error"));
         }
     }, []);
 
@@ -41,9 +41,9 @@ function Register() {
             email,
             roles: [selectedRole]
         }).then(response => {
-            alert(response.data);
+            showToast(response.data, "success");
             navigate('/login');
-        }).catch(err => alert(err.response?.data));
+        }).catch(err => showToast(err.response?.data, "error"));
     };
 
     return (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../assets/api";
 
-function Vehicles() {
+function Vehicles({showToast}) {
 
     const [vehicles, setVehicles] = useState([]);
     const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -16,7 +16,7 @@ function Vehicles() {
             setVehicleTotalPages(response.data.totalPages);
             setSelectedVehicle(null); // reset selection when page changes
         })
-        .catch((err) => alert(err.response?.data || err.message));
+        .catch((err) => showToast(err.response?.data || err.message, "error"));
     }, [vehiclePage]);
 
     return (

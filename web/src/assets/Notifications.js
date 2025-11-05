@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../assets/api";
 
-function Notifications() {
+function Notifications({showToast}) {
 
     const [notifications, setNotifications] = useState([]);
     const [selectedNotification, setSelectedNotification] = useState(null);
@@ -16,7 +16,7 @@ function Notifications() {
             setNotificationTotalPages(response.data.totalPages);
             setSelectedNotification(null); // reset selection on page change
         })
-        .catch((err) => alert(err.response?.data || err.message));
+        .catch((err) => showToast(err.response?.data || err.message, "error"));
     }, [notificationPage]);
 
     const selectNotification = (notification) => {

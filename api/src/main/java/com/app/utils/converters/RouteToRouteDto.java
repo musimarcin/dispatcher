@@ -7,13 +7,23 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class RouteToRouteDto implements Converter<Route, RouteDto> {
 
     @Override
     public RouteDto convert(Route source) {
+        RouteDto routeDto = new RouteDto();
+        routeDto.setId(source.getId());
+        routeDto.setDistance(source.getDistance());
+        routeDto.setEstimatedTime(source.getEstimatedTime());
+        routeDto.setStartTime(source.getStartTime());
+        routeDto.setEndTime(source.getEndTime());
+        routeDto.setStatus(source.getStatus());
+        routeDto.setCreatedAt(source.getCreatedAt());
+        routeDto.setLicensePlate(source.getVehicle().getLicensePlate());
+        routeDto.setUserId(source.getUserId());
+
         List<RoutePointDto> waypoints = source.getWaypoints().stream()
                 .map(w -> {
                     RoutePointDto routePointDto = new RoutePointDto();
@@ -21,20 +31,11 @@ public class RouteToRouteDto implements Converter<Route, RouteDto> {
                     routePointDto.setName(w.getName());
                     routePointDto.setLatitude(w.getLatitude());
                     routePointDto.setLongitude(w.getLongitude());
-                    routePointDto.setRoute(w.getRoute());
+                    routePointDto.setSequence(w.getSequence());
                     return routePointDto;
-                }).collect(Collectors.toList());
-        return new RouteDto(
-                source.getId(),
-                source.getDistance(),
-                source.getEstimatedTime(),
-                source.getStartTime(),
-                source.getEndTime(),
-                source.getStatus(),
-                source.getCreatedAt(),
-                source.getVehicle().getLicensePlate(),
-                waypoints,
-                source.getUserId()
-        );
+                }).toList();
+
+        routeDto.setWaypoints(waypoints);
+        return routeDto;
     }
 }

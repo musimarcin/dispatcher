@@ -1,9 +1,8 @@
 package com.app.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -13,7 +12,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "routes")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Route {
@@ -22,6 +22,7 @@ public class Route {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Distance cannot be null")
     @Column(precision = 10, scale = 2)
     private BigDecimal distance;
 
@@ -36,8 +37,7 @@ public class Route {
     private Vehicle vehicle;
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sequence ASC")
-    private List<RoutePoints> waypoints = new ArrayList<>();
+    private List<RoutePoint> waypoints = new ArrayList<>();
 
     private Long userId;
 

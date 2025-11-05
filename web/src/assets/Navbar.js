@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from './api'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function Navbar({ isLoggedIn }) {
+function Navbar({ isLoggedIn, showToast }) {
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -11,7 +11,7 @@ function Navbar({ isLoggedIn }) {
             window.location.reload();
             navigate('/login');
             localStorage.clear();
-        }).catch(err => alert("Failed to logout", err));
+        }).catch(err => showToast("Failed to logout " + err, "error"));
     };
 
 

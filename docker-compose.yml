@@ -82,7 +82,7 @@ services:
       - dispatcher-net
 
 
-  # nominatim for geocoding
+#  # nominatim for geocoding
 #  nominatim:
 #    image: mediagis/nominatim:5.1
 #    container_name: nominatim

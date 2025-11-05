@@ -11,10 +11,20 @@ import Navbar from './assets/Navbar';
 import ProtectedRoute from './assets/ProtectedRoute'
 import PublicRoute from './assets/PublicRoute'
 import 'bootstrap/dist/css/bootstrap.min.css';
+import ToastMessage from "./assets/ToastMessage";
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+
+    const [toast, setToast] = useState({ message: "", type: "info", show: false });
+
+    const showToast = (message, type = "info") => {
+        setToast({ message, type, show: true });
+    };
+
+    const hideToast = () => setToast(prev => ({ ...prev, show: false }));
+
 
     useEffect(() => {
         api.get("/auth/check")
@@ -37,37 +47,43 @@ function App() {
 
     return (
         <>
+            <ToastMessage
+                message={toast.message}
+                type={toast.type}
+                show={toast.show}
+                onClose={hideToast}
+            />
             <Router>
                 <Navbar isLoggedIn={isLoggedIn}/>
                 <Routes>
                     <Route path="/" element={
                         <ProtectedRoute isLoggedIn={isLoggedIn}>
-                            <Dashboard />
+                            <Dashboard showToast={showToast} />
                         </ProtectedRoute>
                     } />
                     <Route path="/login" element={
                         <PublicRoute isLoggedIn={isLoggedIn}>
-                            <Login />
+                            <Login showToast={showToast} />
                         </PublicRoute>
                     } />
                     <Route path="/register" element={
                         <PublicRoute isLoggedIn={isLoggedIn}>
-                            <Register />
+                            <Register showToast={showToast} />
                         </PublicRoute>
                     } />
                     <Route path="/settings" element={
                         <ProtectedRoute isLoggedIn={isLoggedIn}>
-                            <Settings />
+                            <Settings showToast={showToast} />
                         </ProtectedRoute>
                     } />
                     <Route path="/vehicle" element={
                         <ProtectedRoute isLoggedIn={isLoggedIn}>
-                            <Vehicle />
+                            <Vehicle showToast={showToast} />
                         </ProtectedRoute>
                     } />
                     <Route path="/route" element={
                         <ProtectedRoute isLoggedIn={isLoggedIn}>
-                            <RouteMap />
+                            <RouteMap showToast={showToast} />
                         </ProtectedRoute>
                     } />
                     <Route path="*" element={

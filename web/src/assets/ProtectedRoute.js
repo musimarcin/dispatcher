@@ -6,7 +6,7 @@ function ProtectedRoute({ isLoggedIn, children }) {
         // Not logged in, redirect to login page
         return <Navigate to="/login" replace />;
     }
-  return children;
+    return children;
 };
 
 export default ProtectedRoute;

@@ -3,7 +3,7 @@ import api from '../assets/api'
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function Settings() {
+function Settings({showToast}) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [email, setEmail] = useState("");
@@ -24,7 +24,7 @@ function Settings() {
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => alert(err.response?.data)); //question marks to check if previous part returned null
+            }).catch(err => showToast(err.response?.data, "error")); //question marks to check if previous part returned null
         }
 
         const storedUserRoles = localStorage.getItem("userRoles");
@@ -57,7 +57,7 @@ function Settings() {
                 const filtered = allRoles.filter(role => !response.data.includes(role));
                 setRoles(filtered);
                 setSelectedAvailableRoles([]);
-            }).catch(err => alert(err.response?.data));
+            }).catch(err => showToast(err.response?.data, "error"));
     };
 
     const handleUserRolesChange = (e) => {
@@ -78,11 +78,11 @@ function Settings() {
             password,
             email
             }).then(res => {
-                alert(res.data)
+                showToast(res.data, "success")
                 setUsername("")
                 setPassword("")
                 setEmail("")
-            }).catch(err => alert(err.response?.data));
+            }).catch(err => showToast(err.response?.data, "error"));
     };
 
     const removeRoles = async (e) => {
@@ -95,7 +95,7 @@ function Settings() {
             return updateRoles();
         }).then(() => {
             setSelectedUserRoles([]); //refreshes window
-        }).catch(err => alert(err.response?.data));
+        }).catch(err => showToast(err.response?.data, "error"));
     };
 
     const addRoles = async (e) => {
@@ -108,17 +108,17 @@ function Settings() {
             return updateRoles();
         }).then(() => {
             setSelectedAvailableRoles([]); //refreshes window
-        }).catch(err => alert(err.response?.data));
+        }).catch(err => showToast(err.response?.data, "error"));
     };
 
     const deleteUser = async (e) => {
         await api.delete('auth/delete')
         .then(response => {
-            alert(response.data);
+            showToast(response.data, "success");
             navigate('/login');
             localStorage.clear();
         })
-        .catch(err => alert(err.response?.data));
+        .catch(err => showToast(err.response?.data, "error"));
     }
 
     return (
