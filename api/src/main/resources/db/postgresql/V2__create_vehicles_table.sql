@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS vehicles (
     mileage INT,
     last_maintenance DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    user_id BIGINT REFERENCES users(id)
+    user_id BIGINT REFERENCES users(id) ON DELETE SET NULL
 );

@@ -32,6 +32,12 @@ function SearchVehicle({showToast}) {
         ).catch(err => showToast(err.response?.data, "error"));
     };
 
+    const removeVehicle = (licensePlate) => {
+        api.delete(`/vehicles?licensePlate=${licensePlate}`)
+        .then(res => showToast(res.data, "success"))
+        .catch(err => showToast(err.response?.data, "error"))
+    }
+
     return (
         <div className="container my-5">
             <h2>Search Vehicles</h2>
@@ -181,6 +187,7 @@ function SearchVehicle({showToast}) {
                                 <th>Fuel Capacity</th>
                                 <th>Avg. Consumption</th>
                                 <th>Mileage</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -193,6 +200,11 @@ function SearchVehicle({showToast}) {
                                     <td>{v.fuelCapacity}</td>
                                     <td>{v.averageConsumption}</td>
                                     <td>{v.mileage}</td>
+                                    <td>
+                                        <button className="btn btn-danger mt-2" onClick={() => removeVehicle(v.licensePlate)}>
+                                            Delete Vehicle
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

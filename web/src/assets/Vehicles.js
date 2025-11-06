@@ -85,11 +85,11 @@ function Vehicles({showToast}) {
 
                     <p className="card-text">
                         <strong>Last Maintenance:</strong>{" "}
-                        {new Date(selectedVehicle.lastMaintenance).toLocaleDateString() || "N/A"}
+                        {new Date(selectedVehicle.lastMaintenance).toLocaleDateString("pl-PL") || "N/A"}
                     </p>
 
                     <p className="card-text">
-                        <strong>Created At:</strong> {new Date(selectedVehicle.createdAt).toLocaleString() || "N/A"}
+                        <strong>Created At:</strong> {new Date(selectedVehicle.createdAt).toLocaleString("pl-PL") || "N/A"}
                     </p>
 
                 </div>

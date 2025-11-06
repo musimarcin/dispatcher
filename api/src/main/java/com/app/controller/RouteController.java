@@ -62,7 +62,7 @@ public class RouteController {
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteRoute(@RequestParam @Valid String id) {
+    public ResponseEntity<String> deleteRoute(@RequestParam(name = "id") @Valid String id) {
         Long routeId = Long.valueOf(id);
         boolean isDeleted = routeService.deleteRoute(routeId);
         if (isDeleted) return ResponseEntity.status(HttpStatus.OK).body("Route deleted successfully");

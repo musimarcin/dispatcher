@@ -21,21 +21,12 @@ function Route({showToast}) {
 
     const [vehicles, setVehicles] = useState([]);
 
-    const [selectedVehicle, setSelectedVehicle] = useState({
-        licensePlate: "",
-        model: "",
-        manufacturer: "",
-        productionYear: "",
-        fuelCapacity: "",
-        averageConsumption: "",
-        mileage: "",
-        lastMaintenance: "",
-    });
+    const [selectedVehicle, setSelectedVehicle] = useState(null);
 
     const [routes, setRoutes] = useState([]);
 
-    const [distance, setDistance] = useState([]);
-    const [estimatedTime, setEstimatedTime] = useState([]);
+    const [distance, setDistance] = useState(0);
+    const [estimatedTime, setEstimatedTime] = useState(0);
 
     useEffect(() => {
 
@@ -63,7 +54,8 @@ function Route({showToast}) {
     }, []);
 
     useEffect(() => {
-        updateRoute();
+        const waypoints = getWaypoints();
+        if (waypoints?.length > 1) updateRoute(waypoints);
     }, [locations]);
 
     const customIcon = new L.Icon({
@@ -117,7 +109,8 @@ function Route({showToast}) {
         )
 
         setSuggestions([]);
-        updateRoute();
+        const waypoints = getWaypoints();
+        updateRoute(waypoints);
     };
 
     const handleStructuredSearch = async (id) => {
@@ -142,12 +135,13 @@ function Route({showToast}) {
                             : loc
                     )
                 )
-                updateRoute();
+                const waypoints = getWaypoints();
+                updateRoute(waypoints);
             }
         }).catch(err => showToast(err.response?.data, "error"));
     };
 
-    const updateRoute = () => {
+    const getWaypoints = () => {
         const coordsArray = locations.filter((l) => l.coords).map((l) => l.coords);
         if (coordsArray.length === 0 || !mapRef.current) return;
 
@@ -155,9 +149,12 @@ function Route({showToast}) {
             mapRef.current.setView([coordsArray[0].lat, coordsArray[0].lon], 13);
             return;
         }
-
         const waypoints = coordsArray.map((c) => L.latLng(c.lat, c.lon));
+        return waypoints;
+    }
 
+
+    const updateRoute = (waypoints) => {
         if (routingControlRef.current) {
             routingControlRef.current.setWaypoints(waypoints);
         } else {
@@ -178,22 +175,29 @@ function Route({showToast}) {
         mapRef.current.fitBounds(group.getBounds(), { padding: [50, 50] });
     }
 
-    const displayRouteOnMap = (route) => {
-        if (!mapRef.current || !route.coords) return;
+    const displayRouteOnMap = (id) => {
+        if (!mapRef.current) return;
 
-        const waypoints = route.coords.map((c) => L.latLng(c.lat, c.lon));
+        const route = routes.find(r => r.id === id);
+        if (!route || !route.waypoints) return;
 
-        if (routingControlRef.current) {
-            routingControlRef.current.setWaypoints(waypoints);
-        } else {
-            routingControlRef.current = L.Routing.control({
-                waypoints,
-                router: L.Routing.osrmv1({
-                    serviceUrl: "http://localhost:8080/osrm/route/v1",
-                }),
-                createMarker: (i, wp) => L.marker(wp.latLng, { icon: customIcon }),
-            }).addTo(mapRef.current);
-        }
+        const waypoints = route.waypoints.map(wp => L.latLng(wp.latitude, wp.longitude));
+
+        updateRoute(waypoints);
+
+//        if (routingControlRef.current) {
+//            routingControlRef.current.setWaypoints(waypoints);
+//        } else {
+//            routingControlRef.current = L.Routing.control({
+//                waypoints,
+//                router: L.Routing.osrmv1({
+//                    serviceUrl: "http://localhost:8080/osrm/route/v1",
+//                }),
+//                createMarker: (i, wp) => L.marker(wp.latLng, { icon: customIcon }),
+//            }).addTo(mapRef.current);
+//        }
+//        const group = new L.featureGroup(waypoints.map((c) => L.marker(c)));
+//        mapRef.current.fitBounds(group.getBounds(), { padding: [50, 50] });
     };
 
     const handleVehicleChange = (e) => {
@@ -223,7 +227,6 @@ function Route({showToast}) {
         const startTime = new Date();
         const endTime = new Date(startTime.getTime() + estimatedTime * 1000);
         const newRoute = {
-            id: routes.length + 1,
             distance,
             estimatedTime,
             startTime,
@@ -231,16 +234,21 @@ function Route({showToast}) {
             status: "ACTIVE",
             createdAt: new Date(),
             licensePlate: selectedVehicle.licensePlate,
-            waypoints: locations.map((loc, i) => ({
-                name: loc.query,
-                latitude: loc.coords.lat,
-                longitude: loc.coords.lon,
-                sequence: i + 1,
-            }))
+            waypoints: locations
+                .filter(loc => loc.coords)
+                .map((loc, i) => ({
+                    name: loc.query,
+                    latitude: loc.coords.lat,
+                    longitude: loc.coords.lon,
+                    sequence: i + 1,
+                }))
         };
 
         api.post("/route", newRoute)
-        .then(res => showToast(res.data, "success"))
+        .then(res => {
+            showToast(res.data, "success");
+            handleVehicleChange({ target: { value: selectedVehicle.licensePlate } });
+        })
         .catch(err => showToast(err.response?.data, "error"))
     }
 
@@ -282,7 +290,7 @@ function Route({showToast}) {
                                 <th>Through</th>
                                 <th>Finish</th>
                                 <th>Distance (km)</th>
-                                <th>Estimated Time</th>
+                                <th>Estimated Time (min)</th>
                                 <th>Date</th>
                             </tr>
                         </thead>
@@ -299,13 +307,13 @@ function Route({showToast}) {
                                         <td>{through}</td>
                                         <td>{lastWaypoint}</td>
                                         <td>{r.distance}</td>
-                                        <td>{r.estimatedTime}</td>
-                                        <td>{new Date(r.createdAt).toLocaleString()}</td>
+                                        <td>{(r.estimatedTime / 60)}</td>
+                                        <td>{new Date(r.createdAt).toLocaleString("pl-PL")}</td>
                                         <td>
                                             <button className="btn btn-danger mt-2" onClick={() => removeRoute(r.id)}>
                                                 Remove Route
                                             </button>
-                                            <button className="btn btn-primary mt-2" onClick={updateRoute}>
+                                            <button className="btn btn-primary mt-2" onClick={() => displayRouteOnMap(r.id)}>
                                                 Show on map
                                             </button>
                                         </td>
@@ -383,7 +391,7 @@ function Route({showToast}) {
                     Add Location to Vehicle
                 </button>
             </div>
-            <div id="map" className="d-flex justify-content-center"/>
+            <div id="map" className="d-flex justify-content-center"></div>
         </>
     );
 }

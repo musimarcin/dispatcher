@@ -55,8 +55,8 @@ public class VehicleController {
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteVehicle(@RequestBody @Valid HashMap<String, String> searchCriteria) {
-        boolean isDeleted = vehicleService.deleteVehicle(searchCriteria);
+    public ResponseEntity<String> deleteVehicle(@RequestParam(name = "licensePlate") @Valid String licensePlate) {
+        boolean isDeleted = vehicleService.deleteVehicle(licensePlate);
         if (isDeleted) return ResponseEntity.status(HttpStatus.OK).body("Vehicle deleted successfully");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
     }

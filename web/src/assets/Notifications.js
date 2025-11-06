@@ -42,7 +42,7 @@ function Notifications({showToast}) {
 
                     <br />
                     <small className="text-muted">
-                        {new Date(notification.createdAt).toLocaleString()}
+                        {new Date(notification.createdAt).toLocaleString("pl-PL")}
                     </small>
                 </li>
             ))}
@@ -75,7 +75,7 @@ function Notifications({showToast}) {
                     <p>
                         <small className="text-muted">
                             Created:{" "}
-                            {new Date(selectedNotification.createdAt).toLocaleString()}
+                            {new Date(selectedNotification.createdAt).toLocaleString("pl-PL")}
                         </small>
                     </p>
                     <p>User ID: {selectedNotification.userId}</p>

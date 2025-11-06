@@ -2,6 +2,7 @@ package com.app.service;
 
 import com.app.events.EventType;
 import com.app.events.VehicleEvent;
+import com.app.model.Route;
 import com.app.model.Vehicle;
 import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
@@ -20,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VehicleService {
@@ -124,13 +126,9 @@ public class VehicleService {
     }
 
     @Transactional
-    public boolean deleteVehicle(HashMap<String, String> searchCriteria) {
-        Specification<Vehicle> specification = getSpecification(searchCriteria);
-        if (specification == null) return false;
-        specification.and(VehicleSpecifications.containsUserId(getUser()));
-        List<Vehicle> vehiclesToDelete = vehicleRepo.findAll(specification);
-        if (vehiclesToDelete.isEmpty()) return false;
-        vehicleRepo.deleteAll(vehiclesToDelete);
+    public boolean deleteVehicle(String licensePlate) {
+        Optional<Vehicle> route = vehicleRepo.findByLicensePlate(licensePlate);
+        route.ifPresent(vehicleRepo::delete);
         return true;
     }
 

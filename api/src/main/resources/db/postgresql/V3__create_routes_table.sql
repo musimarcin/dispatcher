@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS routes (
     status VARCHAR(20) DEFAULT 'planned',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     vehicle_id BIGINT REFERENCES vehicles(id),
-    user_id BIGINT REFERENCES users(id)
+    user_id BIGINT REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS route_points (
