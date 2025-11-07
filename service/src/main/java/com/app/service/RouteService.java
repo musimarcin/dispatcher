@@ -1,5 +1,6 @@
 package com.app.service;
 
+import com.app.dto.RouteDto;
 import com.app.events.EventType;
 import com.app.events.RouteEvent;
 import com.app.model.Route;
@@ -9,6 +10,8 @@ import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
 import com.app.security.SecurityUtil;
 import com.app.specifications.RouteSpecifications;
+import com.app.converters.RouteDtoToRoute;
+import com.app.converters.RouteToRouteDto;
 import io.mongock.utils.StringUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,12 +37,16 @@ public class RouteService {
     private final UserRepo userRepo;
     private final VehicleRepo vehicleRepo;
     private final ApplicationEventPublisher eventPublisher;
+    private final RouteToRouteDto routeConverter;
+    private final RouteDtoToRoute routeDtoConverter;
 
-    public RouteService(RouteRepo routeRepo, UserRepo userRepo, VehicleRepo vehicleRepo, ApplicationEventPublisher eventPublisher) {
+    public RouteService(RouteRepo routeRepo, UserRepo userRepo, VehicleRepo vehicleRepo, ApplicationEventPublisher eventPublisher, RouteToRouteDto routeConverter, RouteDtoToRoute routeDtoConverter) {
         this.routeRepo = routeRepo;
         this.userRepo = userRepo;
         this.vehicleRepo = vehicleRepo;
         this.eventPublisher = eventPublisher;
+        this.routeConverter = routeConverter;
+        this.routeDtoConverter = routeDtoConverter;
     }
 
     private Pageable getPage(Integer page) {
@@ -49,19 +56,21 @@ public class RouteService {
 
     private Long getUser() {
         String username = SecurityUtil.getSessionUser();
-        return userRepo.findByUsername(username).getId();
+        return userRepo.findByUsername(username).get().getId();
     }
 
-    public Page<Route> getAllRoutes(Integer page) {
-        return routeRepo.findByUserId(getUser(), getPage(page));
+    public Page<RouteDto> getAllRoutes(Integer page) {
+        Page<Route> routePage = routeRepo.findByUserId(getUser(), getPage(page));
+        return routePage.map(routeConverter::convert);
     }
 
-    public Page<Route> getVehicleRoutes(String licensePlate, Integer page) {
+    public Page<RouteDto> getVehicleRoutes(String licensePlate, Integer page) {
         Vehicle vehicle;
         if (vehicleRepo.findByLicensePlate(licensePlate).isPresent()) {
             vehicle = vehicleRepo.findByLicensePlate(licensePlate).get();
         } else return null;
-        return routeRepo.findByVehicle(vehicle, getPage(page));
+        Page<Route> routePage = routeRepo.findByVehicle(vehicle, getPage(page));
+        return routePage.map(routeConverter::convert);
     }
 
     private Specification<Route> getSpecification(HashMap<String, String> searchCriteria) {
@@ -134,16 +143,18 @@ public class RouteService {
         return specification;
     }
 
-    public Page<Route> searchRoute(Integer page, HashMap<String, String> searchCriteria) {
+    public Page<RouteDto> searchRoute(Integer page, HashMap<String, String> searchCriteria) {
         Specification<Route> specification = getSpecification(searchCriteria);
         specification = specification.and(RouteSpecifications.containsUserId(getUser()));
-        return routeRepo.findAll(specification, getPage(page));
+        Page<Route> routePage = routeRepo.findAll(specification, getPage(page));
+        return routePage.map(routeConverter::convert);
     }
 
     @Transactional
-    public void addRoute(Route route) {
-        route.setUserId(getUser());
-        route.setCreatedAt(Instant.now());
+    public void addRoute(RouteDto routeDto) {
+        routeDto.setUserId(getUser());
+        routeDto.setCreatedAt(Instant.now());
+        Route route = routeDtoConverter.convert(routeDto);
         routeRepo.save(route);
         RouteEvent routeEvent = new RouteEvent(
                 EventType.CREATED,

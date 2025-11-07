@@ -1,6 +1,7 @@
-package com.app.utils.converters;
+package com.app.converters;
 
 import com.app.dto.RouteDto;
+import com.app.dto.VehicleDto;
 import com.app.model.Route;
 import com.app.model.RoutePoint;
 import com.app.model.Vehicle;
@@ -14,10 +15,10 @@ import java.util.List;
 @Component
 public class RouteDtoToRoute implements Converter<RouteDto, Route> {
 
-    private final VehicleService vehicleService;
+    private final VehicleDtoToVehicle vehicleDtoConverter;
 
-    public RouteDtoToRoute(VehicleService vehicleService) {
-        this.vehicleService = vehicleService;
+    public RouteDtoToRoute(VehicleDtoToVehicle vehicleDtoConverter) {
+        this.vehicleDtoConverter = vehicleDtoConverter;
     }
 
     @Override
@@ -32,13 +33,6 @@ public class RouteDtoToRoute implements Converter<RouteDto, Route> {
         route.setCreatedAt(source.getCreatedAt());
         route.setUserId(source.getUserId());
 
-        HashMap<String, String> vehiclePlate = new HashMap<>();
-        vehiclePlate.put("licensePlate", source.getLicensePlate());
-        Vehicle vehicle;
-        if (vehicleService.searchVehicles(1, vehiclePlate).stream().findFirst().isPresent()) {
-            vehicle = vehicleService.searchVehicles(1, vehiclePlate).stream().findFirst().get();
-        } else return null;
-
         List<RoutePoint> waypoints = source.getWaypoints().stream()
                 .map(w -> {
                     RoutePoint routePoint = new RoutePoint();
@@ -50,7 +44,7 @@ public class RouteDtoToRoute implements Converter<RouteDto, Route> {
                     return routePoint;
                 }).toList();
 
-        route.setVehicle(vehicle);
+        route.setVehicle(vehicleDtoConverter.convert(source.getVehicleDto()));
         route.setWaypoints(waypoints);
         return route;
     }

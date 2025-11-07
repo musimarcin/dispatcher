@@ -1,4 +1,4 @@
-package com.app.utils.converters;
+package com.app.converters;
 
 import com.app.dto.RouteDto;
 import com.app.dto.RoutePointDto;
@@ -11,6 +11,12 @@ import java.util.List;
 @Component
 public class RouteToRouteDto implements Converter<Route, RouteDto> {
 
+    private final VehicleToVehicleDto vehicleConverter;
+
+    public RouteToRouteDto(VehicleToVehicleDto vehicleConverter) {
+        this.vehicleConverter = vehicleConverter;
+    }
+
     @Override
     public RouteDto convert(Route source) {
         RouteDto routeDto = new RouteDto();
@@ -21,7 +27,7 @@ public class RouteToRouteDto implements Converter<Route, RouteDto> {
         routeDto.setEndTime(source.getEndTime());
         routeDto.setStatus(source.getStatus());
         routeDto.setCreatedAt(source.getCreatedAt());
-        routeDto.setLicensePlate(source.getVehicle().getLicensePlate());
+        routeDto.setVehicleDto(vehicleConverter.convert(source.getVehicle()));
         routeDto.setUserId(source.getUserId());
 
         List<RoutePointDto> waypoints = source.getWaypoints().stream()

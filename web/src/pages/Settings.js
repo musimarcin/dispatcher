@@ -112,7 +112,7 @@ function Settings({showToast}) {
     };
 
     const deleteUser = async (e) => {
-        await api.delete('auth/delete')
+        await api.delete('/auth')
         .then(response => {
             showToast(response.data, "success");
             navigate('/login');

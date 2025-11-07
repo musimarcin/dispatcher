@@ -1,13 +1,15 @@
 package com.app.service;
 
+import com.app.dto.VehicleDto;
 import com.app.events.EventType;
 import com.app.events.VehicleEvent;
-import com.app.model.Route;
 import com.app.model.Vehicle;
 import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
 import com.app.security.SecurityUtil;
 import com.app.specifications.VehicleSpecifications;
+import com.app.converters.VehicleDtoToVehicle;
+import com.app.converters.VehicleToVehicleDto;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,7 +22,6 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,11 +30,15 @@ public class VehicleService {
     private final VehicleRepo vehicleRepo;
     private final UserRepo userRepo;
     private final ApplicationEventPublisher eventPublisher;
+    private final VehicleToVehicleDto vehicleConverter;
+    private final VehicleDtoToVehicle vehicleDtoConverter;
 
-    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo, ApplicationEventPublisher eventPublisher) {
+    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo, ApplicationEventPublisher eventPublisher, VehicleToVehicleDto vehicleConverter, VehicleDtoToVehicle vehicleDtoConverter) {
         this.vehicleRepo = vehicleRepo;
         this.userRepo = userRepo;
         this.eventPublisher = eventPublisher;
+        this.vehicleConverter = vehicleConverter;
+        this.vehicleDtoConverter = vehicleDtoConverter;
     }
 
     private Pageable getPage(Integer page) {
@@ -43,11 +48,12 @@ public class VehicleService {
 
     private Long getUser() {
         String username = SecurityUtil.getSessionUser();
-        return userRepo.findByUsername(username).getId();
+        return userRepo.findByUsername(username).get().getId();
     }
 
-    public Page<Vehicle> getAllVehicles(Integer page) {
-        return vehicleRepo.findByUserId(getUser(), getPage(page));
+    public Page<VehicleDto> getAllVehicles(Integer page) {
+        Page<Vehicle> vehiclePage = vehicleRepo.findByUserId(getUser(), getPage(page));
+        return vehiclePage.map(vehicleConverter::convert);
     }
 
     private Specification<Vehicle> getSpecification(HashMap<String, String> searchCriteria) {
@@ -105,16 +111,18 @@ public class VehicleService {
         return specification;
     }
 
-    public Page<Vehicle> searchVehicles(Integer page, HashMap<String, String> searchCriteria) {
+    public Page<VehicleDto> searchVehicles(Integer page, HashMap<String, String> searchCriteria) {
         Specification<Vehicle> specification = getSpecification(searchCriteria);
         specification = specification.and(VehicleSpecifications.containsUserId(getUser()));
-        return vehicleRepo.findAll(specification, getPage(page));
+        Page<Vehicle> vehiclePage = vehicleRepo.findAll(specification, getPage(page));
+        return vehiclePage.map(vehicleConverter::convert);
     }
 
     @Transactional
-    public void addVehicle(Vehicle vehicle) {
-        vehicle.setUserId(getUser());
-        vehicle.setCreatedAt(Instant.now());
+    public void addVehicle(VehicleDto vehicleDto) {
+        vehicleDto.setUserId(getUser());
+        vehicleDto.setCreatedAt(Instant.now());
+        Vehicle vehicle = vehicleDtoConverter.convert(vehicleDto);
         vehicleRepo.save(vehicle);
         VehicleEvent vehicleEvent = new VehicleEvent(
                 EventType.CREATED,
