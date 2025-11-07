@@ -1,8 +1,11 @@
 package com.app.service;
 
+import com.app.converters.UserToUserDto;
+import com.app.dto.UserDto;
 import com.app.model.Role;
 import com.app.model.UserEntity;
 import com.app.repository.UserRepo;
+import com.app.converters.UserDtoToUser;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,26 +21,34 @@ public class UserService {
 
     private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
+    private final UserDtoToUser userDtoConverter;
+    private final UserToUserDto userConverter;
 
-    public UserService(UserRepo userRepo, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepo userRepo, PasswordEncoder passwordEncoder, UserDtoToUser userDtoConverter, UserToUserDto userConverter) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
+        this.userDtoConverter = userDtoConverter;
+        this.userConverter = userConverter;
     }
 
-    public boolean checkUserAndEmail(String username, String email) {
+    private boolean checkUserAndEmail(String username, String email) {
         return userRepo.existsByUsername(username) && userRepo.existsByEmail(email);
     }
 
-    public void createUser(UserEntity user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepo.save(user);
+    public UserDto createUser(UserDto userDto) {
+        if (!checkUserAndEmail(userDto.getUsername(), userDto.getEmail())) {
+            UserEntity user = userDtoConverter.convert(userDto);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepo.save(user);
+            return userConverter.convert(user);
+        }
+        return null;
     }
 
     @Transactional
     public boolean deleteUser(String username) {
-        UserEntity user = userRepo.findByUsername(username);
-        if (user != null) {
-            userRepo.delete(user);
+        if (userRepo.findByUsername(username).isPresent()) {
+            userRepo.delete(userRepo.findByUsername(username).get());
             return true;
         }
         return false;
@@ -45,9 +56,9 @@ public class UserService {
 
     @Transactional
     public boolean changeUsername(String oldUsername, String newUsername) {
-        UserEntity user = userRepo.findByUsername(oldUsername);
-        if (user != null
+        if (userRepo.findByUsername(oldUsername).isPresent()
                 && userRepo.findByUsername(newUsername) == null) {
+            UserEntity user = userRepo.findByUsername(oldUsername).get();
             user.setUsername(newUsername);
             return true;
         } else return false;
@@ -55,8 +66,8 @@ public class UserService {
 
     @Transactional
     public boolean changePassword(String username, String password) {
-        UserEntity user = userRepo.findByUsername(username);
-        if (user != null) {
+        if (userRepo.findByUsername(username).isPresent()) {
+            UserEntity user = userRepo.findByUsername(username).get();
             user.setPassword(passwordEncoder.encode(password));
             return true;
         } else return false;
@@ -64,8 +75,8 @@ public class UserService {
 
     @Transactional
     public boolean changeEmail(String username, String email) {
-        UserEntity user = userRepo.findByUsername(username);
-        if (user != null) {
+        if (userRepo.findByUsername(username).isPresent()) {
+            UserEntity user = userRepo.findByUsername(username).get();
             user.setEmail(email);
             return true;
         } else return false;
@@ -73,9 +84,9 @@ public class UserService {
 
     @Transactional
     public boolean addRoles(String username, Set<String> newRoles) {
-        UserEntity user = userRepo.findByUsername(username);
         int changes = 0;
-        if (user != null) {
+        if (userRepo.findByUsername(username).isPresent()) {
+            UserEntity user = userRepo.findByUsername(username).get();
             Set<Role> roles = newRoles.stream()
                     .map(Role::valueOf)
                     .collect(Collectors.toSet());
@@ -93,12 +104,12 @@ public class UserService {
 
     @Transactional
     public boolean removeRoles(String username, Set<String> newRoles) {
-        UserEntity user = userRepo.findByUsername(username);
         Set<Role> roles = newRoles.stream()
                 .map(Role::valueOf)
                 .collect(Collectors.toSet());
         int changes = 0;
-        if (user != null) {
+        if (userRepo.findByUsername(username).isPresent()) {
+            UserEntity user = userRepo.findByUsername(username).get();
             for (Role r : roles) {
                 if (user.getRoles().contains(r)) {
                     user.getRoles().remove(r);
@@ -118,12 +129,14 @@ public class UserService {
     }
 
     public Set<String> getUserRoles(String username) {
-        UserEntity user = userRepo.findByUsername(username);
-        Set<Role> roles = user.getRoles();
-        Set<String> res = new HashSet<>();
-        for (Role r : roles) {
-            res.add(r.name().substring(5));
-        }
-        return res;
+        if (userRepo.findByUsername(username).isPresent()) {
+            UserEntity user = userRepo.findByUsername(username).get();
+            Set<Role> roles = user.getRoles();
+            Set<String> res = new HashSet<>();
+            for (Role r : roles) {
+                res.add(r.name().substring(5));
+            }
+            return res;
+        } else return null;
     }
 }

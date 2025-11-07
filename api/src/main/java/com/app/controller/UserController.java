@@ -5,7 +5,7 @@ import com.app.security.CustomUserDetailService;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
 import com.app.service.UserService;
-import com.app.utils.converters.UserDtoToUser;
+import com.app.converters.UserDtoToUser;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -21,6 +21,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -32,14 +33,13 @@ public class UserController {
     private final JWTGenerator jwtGenerator;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailService customUserDetailService;
-    private final UserDtoToUser userDtoConverter;
 
-    public UserController(UserService userService, JWTGenerator jwtGenerator, AuthenticationManager authenticationManager, CustomUserDetailService customUserDetailService, UserDtoToUser userDtoConverter) {
+    public UserController(UserService userService, JWTGenerator jwtGenerator,
+                          AuthenticationManager authenticationManager, CustomUserDetailService customUserDetailService) {
         this.userService = userService;
         this.jwtGenerator = jwtGenerator;
         this.authenticationManager = authenticationManager;
         this.customUserDetailService = customUserDetailService;
-        this.userDtoConverter = userDtoConverter;
     }
 
     @PostMapping("/register")
@@ -55,10 +55,11 @@ public class UserController {
             });
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
         }
-        if (userService.checkUserAndEmail(userDto.getUsername(), userDto.getEmail()))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username or email taken");
-        userService.createUser(userDtoConverter.convert(userDto));
-        return ResponseEntity.status(HttpStatus.CREATED).body("User Registered");
+        UserDto userCreated = userService.createUser(userDto);
+        if (userCreated != null)
+            return ResponseEntity.status(HttpStatus.CREATED).body("User Registered: " + userCreated);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username or email taken");
+
     }
 
     @PostMapping("/login")
@@ -100,7 +101,7 @@ public class UserController {
         return cookie;
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseEntity<String> deleteUser(HttpServletResponse response) {
         String username = SecurityUtil.getSessionUser();
         if (username != null) {
@@ -213,7 +214,9 @@ public class UserController {
     public ResponseEntity<Set<String>> getUserRoles() {
         String username = SecurityUtil.getSessionUser();
         if (username != null) {
-            return ResponseEntity.status(HttpStatus.OK).body(userService.getUserRoles(username));
+            if (userService.getUserRoles(username) != null)
+                return ResponseEntity.status(HttpStatus.OK).body(userService.getUserRoles(username));
+            else return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new HashSet<>(Collections.emptySet()));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.emptySet());
     }

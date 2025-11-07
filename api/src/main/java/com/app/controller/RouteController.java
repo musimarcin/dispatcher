@@ -2,10 +2,7 @@ package com.app.controller;
 
 import com.app.dto.RouteDto;
 import com.app.dto.RoutesDto;
-import com.app.model.Route;
 import com.app.service.RouteService;
-import com.app.utils.converters.RouteDtoToRoute;
-import com.app.utils.converters.RouteToRouteDto;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -20,33 +17,29 @@ import java.util.HashMap;
 public class RouteController {
 
     private final RouteService routeService;
-    private final RouteToRouteDto routeConverter;
-    private final RouteDtoToRoute routeDtoConverter;
 
-    public RouteController(RouteService routeService, RouteToRouteDto routeConverter, RouteDtoToRoute routeDtoConverter) {
+    public RouteController(RouteService routeService) {
         this.routeService = routeService;
-        this.routeConverter = routeConverter;
-        this.routeDtoConverter = routeDtoConverter;
     }
 
     @GetMapping
     public RoutesDto getAllRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page) {
-        Page<Route> routePage = routeService.getAllRoutes(page);
-        return new RoutesDto(routePage.map(routeConverter::convert));
+        Page<RouteDto> routePage = routeService.getAllRoutes(page);
+        return new RoutesDto(routePage);
     }
 
     @GetMapping("/vehicle")
     public RoutesDto getVehicleRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestParam(name = "licensePlate") String licensePlate) {
-        Page<Route> routePage = routeService.getVehicleRoutes(licensePlate, page);
-        return new RoutesDto(routePage.map(routeConverter::convert));
+        Page<RouteDto> routePage = routeService.getVehicleRoutes(licensePlate, page);
+        return new RoutesDto(routePage);
     }
 
     @PostMapping("/search")
     public RoutesDto searchRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                   @RequestBody HashMap<String, String> searchCriteria) {
-        Page<Route> routePage = routeService.searchRoute(page, searchCriteria);
-        return new RoutesDto(routePage.map(routeConverter::convert));
+        Page<RouteDto> routeDtoPage = routeService.searchRoute(page, searchCriteria);
+        return new RoutesDto(routeDtoPage);
     }
 
     @PostMapping
@@ -57,7 +50,7 @@ public class RouteController {
                     errorMessage.append(e.getDefaultMessage()).append(" "));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
         }
-        routeService.addRoute(routeDtoConverter.convert(routeDto));
+        routeService.addRoute(routeDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("Route added successfully");
     }
 

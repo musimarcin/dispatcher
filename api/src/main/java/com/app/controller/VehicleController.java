@@ -2,10 +2,7 @@ package com.app.controller;
 
 import com.app.dto.VehicleDto;
 import com.app.dto.VehiclesDto;
-import com.app.model.Vehicle;
 import com.app.service.VehicleService;
-import com.app.utils.converters.VehicleDtoToVehicle;
-import com.app.utils.converters.VehicleToVehicleDto;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -20,26 +17,23 @@ import java.util.HashMap;
 public class VehicleController {
 
     private final VehicleService vehicleService;
-    private final VehicleToVehicleDto vehicleConverter;
-    private final VehicleDtoToVehicle vehicleDtoConverter;
 
-    public VehicleController(VehicleService vehicleService, VehicleToVehicleDto vehicleConverter, VehicleDtoToVehicle vehicleDtoConverter) {
+
+    public VehicleController(VehicleService vehicleService) {
         this.vehicleService = vehicleService;
-        this.vehicleConverter = vehicleConverter;
-        this.vehicleDtoConverter = vehicleDtoConverter;
     }
 
     @GetMapping
     public VehiclesDto getAllVehicles(@RequestParam(name = "page", defaultValue = "1" ) Integer page) {
-        Page<Vehicle> vehiclePage = vehicleService.getAllVehicles(page);
-        return new VehiclesDto(vehiclePage.map(vehicleConverter::convert));
+        Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(page);
+        return new VehiclesDto(vehicleDtoPage);
     }
 
     @PostMapping("/search")
     public VehiclesDto searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestBody HashMap<String, String> searchCriteria) {
-        Page<Vehicle> vehiclePage = vehicleService.searchVehicles(page, searchCriteria);
-        return new VehiclesDto(vehiclePage.map(vehicleConverter::convert));
+        Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(page, searchCriteria);
+        return new VehiclesDto(vehicleDtoPage);
     }
 
     @PostMapping
@@ -50,7 +44,7 @@ public class VehicleController {
                     errorMessage.append(e.getDefaultMessage()).append(" "));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
         }
-        vehicleService.addVehicle(vehicleDtoConverter.convert(vehicleDto));
+        vehicleService.addVehicle(vehicleDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("Vehicle added successfully");
     }
 

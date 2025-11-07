@@ -1,4 +1,4 @@
-package com.app.utils.converters;
+package com.app.converters;
 
 import com.app.dto.UserDto;
 import com.app.model.UserEntity;
@@ -15,7 +15,7 @@ public class UserToUserDto implements Converter<UserEntity, UserDto> {
         return new UserDto(
                 source.getId(),
                 source.getUsername(),
-                source.getPassword(),
+                "",
                 source.getEmail(),
                 source.getRegistered(),
                 source.getRoles().stream().map(String::valueOf).collect(Collectors.toSet())

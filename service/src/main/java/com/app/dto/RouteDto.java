@@ -1,6 +1,7 @@
 package com.app.dto;
 
 import com.app.model.RouteStatus;
+import com.app.model.Vehicle;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ public class RouteDto {
     private RouteStatus status;
     private Instant createdAt;
     @NotBlank(message = "Vehicle plate is required")
-    private String licensePlate;
+    private VehicleDto vehicleDto;
     private List<RoutePointDto> waypoints;
     private Long userId;
 }
