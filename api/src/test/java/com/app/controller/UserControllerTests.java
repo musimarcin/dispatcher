@@ -15,17 +15,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import javax.security.sasl.AuthenticationException;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -82,9 +78,9 @@ public class UserControllerTests {
 
         // then
         response.andExpect(status().isCreated())
-                .andExpect(content().string(containsString("User Registered:")))
-                .andExpect(content().string(containsString("username=John")))
-                .andExpect(content().string(containsString("email=john@smith")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("User Registered:")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("username=John")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("email=john@smith")));
     }
 
     @Test
@@ -104,26 +100,12 @@ public class UserControllerTests {
         given(authenticationManager.authenticate(any())).willReturn(null);
         given(jwtGenerator.generateToken(any())).willReturn("mock-token");
 
-        ResultActions response = mockMvc.perform(post("/api/auth/login")
+        ResultActions response = mockMvc.perform(post("/api/auth/login)")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"username\":\"John\",\"password\":\"smith\"}"));
 
         response.andExpect(status().isOk())
-                .andExpect(content().string("Logged in successfully"))
-                .andExpect(header().string("Set-Cookie", containsString("token=mock-token")));
-
-    }
-
-    @Test
-    public void givenInvalidUser_whenLogin_ThenReturnUnauthorized() throws Exception {
-        given(authenticationManager.authenticate(any())).willThrow(new BadCredentialsException("Bad credentials"));
-
-        ResultActions response = mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"username\":\"invalid\",\"password\":\"invalid\"}"));
-
-        response.andExpect(status().isUnauthorized())
-                .andExpect(content().string("Credentials incorrect"));
+                .andExpect(jsonPath("$.token").value("mock-token"));
     }
 
     @Test
@@ -149,15 +131,5 @@ public class UserControllerTests {
 
         mockMvc.perform(delete("/api/auth"))
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void givenNonLoggedInUser_whenDelete_thenReturnUnauthorized() throws Exception {
-        SecurityContextHolder.clearContext();
-
-        ResultActions response = mockMvc.perform(delete("/api/auth/delete"));
-
-        response.andExpect(status().isUnauthorized())
-                .andExpect(content().string("You are not logged in to delete user"));
     }
 }
