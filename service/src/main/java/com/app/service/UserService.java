@@ -57,11 +57,15 @@ public class UserService {
     @Transactional
     public boolean changeUsername(String oldUsername, String newUsername) {
         if (userRepo.findByUsername(oldUsername).isPresent()
-                && userRepo.findByUsername(newUsername) == null) {
+                && userRepo.findByUsername(newUsername).isEmpty()) {
             UserEntity user = userRepo.findByUsername(oldUsername).get();
+            System.out.println("SERVICE CHANGEUSERNAME " + oldUsername + " " + newUsername + " user " + user);
             user.setUsername(newUsername);
             return true;
-        } else return false;
+        } else {
+            System.out.println("FALSE BROOOOOOOO");
+            return false;
+        }
     }
 
     @Transactional

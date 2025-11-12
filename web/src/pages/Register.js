@@ -41,9 +41,9 @@ function Register({showToast}) {
             email,
             roles: [selectedRole]
         }).then(response => {
-            showToast(response.data, "success");
-            navigate('/login');
-        }).catch(err => showToast(err.response?.data, "error"));
+            showToast(response.data.message, "success");
+            setTimeout(navigate('/login'), 2000);
+        }).catch(err => showToast(err.response?.data.message, "error"));
     };
 
     return (

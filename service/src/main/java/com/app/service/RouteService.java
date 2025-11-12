@@ -4,11 +4,11 @@ import com.app.dto.RouteDto;
 import com.app.events.EventType;
 import com.app.events.RouteEvent;
 import com.app.model.Route;
+import com.app.model.UserEntity;
 import com.app.model.Vehicle;
 import com.app.repository.RouteRepo;
 import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
-import com.app.security.SecurityUtil;
 import com.app.specifications.RouteSpecifications;
 import com.app.converters.RouteDtoToRoute;
 import com.app.converters.RouteToRouteDto;
@@ -54,13 +54,10 @@ public class RouteService {
         return PageRequest.of(pageNo, 10);
     }
 
-    private Long getUser() {
-        String username = SecurityUtil.getSessionUser();
-        return userRepo.findByUsername(username).get().getId();
-    }
-
-    public Page<RouteDto> getAllRoutes(Integer page) {
-        Page<Route> routePage = routeRepo.findByUserId(getUser(), getPage(page));
+    public Page<RouteDto> getAllRoutes(String username, Integer page) {
+        if (userRepo.findByUsername(username).isEmpty()) return null;
+        UserEntity user = userRepo.findByUsername(username).get();
+        Page<Route> routePage = routeRepo.findByUserId(user.getId(), getPage(page));
         return routePage.map(routeConverter::convert);
     }
 
@@ -143,23 +140,27 @@ public class RouteService {
         return specification;
     }
 
-    public Page<RouteDto> searchRoute(Integer page, HashMap<String, String> searchCriteria) {
+    public Page<RouteDto> searchRoute(String username, Integer page, HashMap<String, String> searchCriteria) {
+        if (userRepo.findByUsername(username).isEmpty()) return null;
+        UserEntity user = userRepo.findByUsername(username).get();
         Specification<Route> specification = getSpecification(searchCriteria);
-        specification = specification.and(RouteSpecifications.containsUserId(getUser()));
+        specification = specification.and(RouteSpecifications.containsUserId(user.getId()));
         Page<Route> routePage = routeRepo.findAll(specification, getPage(page));
         return routePage.map(routeConverter::convert);
     }
 
     @Transactional
-    public void addRoute(RouteDto routeDto) {
-        routeDto.setUserId(getUser());
+    public void addRoute(String username, RouteDto routeDto) {
+        if (userRepo.findByUsername(username).isEmpty()) return;
+        UserEntity user = userRepo.findByUsername(username).get();
+        routeDto.setUserId(user.getId());
         routeDto.setCreatedAt(Instant.now());
         Route route = routeDtoConverter.convert(routeDto);
         routeRepo.save(route);
         RouteEvent routeEvent = new RouteEvent(
                 EventType.CREATED,
                 route,
-                getUser(),
+                user.getId(),
                 Instant.now()
         );
         eventPublisher.publishEvent(routeEvent);

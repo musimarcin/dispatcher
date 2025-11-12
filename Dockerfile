@@ -7,6 +7,7 @@ COPY pom.xml .
 COPY api ./api
 COPY service ./service
 COPY persistence ./persistence
+COPY security ./security
 
 # Build api module and dependencies
 RUN mvn clean package -pl api -am -DskipTests

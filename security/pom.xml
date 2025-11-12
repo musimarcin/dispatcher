@@ -10,7 +10,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>api</artifactId>
+    <artifactId>security</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -24,24 +24,6 @@
             <artifactId>service</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.app</groupId>
-            <artifactId>security</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
-<!--for docker-->
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <!--different path on docker-->
-                <configuration>
-                    <mainClass>com.app.DispatcherApplication</mainClass>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

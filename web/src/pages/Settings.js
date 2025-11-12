@@ -89,12 +89,14 @@ function Settings({showToast}) {
         e.preventDefault();
         const rolesWithPrefix = selectedUserRoles.map(role => "ROLE_" + role);
 
-        api.post("/auth/change/role/remove", {
-            roles: rolesWithPrefix
-        }).then(() => {
+        api.patch("/auth/roles",
+            { roles: rolesWithPrefix },
+            { headers: { action: "remove" } }
+        ).then(() => {
             return updateRoles();
         }).then(() => {
             setSelectedUserRoles([]); //refreshes window
+            showToast(response.data);
         }).catch(err => showToast(err.response?.data, "error"));
     };
 
@@ -102,12 +104,14 @@ function Settings({showToast}) {
         e.preventDefault();
         const rolesWithPrefix = selectedAvailableRoles.map(role => "ROLE_" + role);
 
-        api.post("/auth/change/role/add", {
-            roles: rolesWithPrefix
-        }).then(() => {
+        api.patch("/auth/roles",
+            { roles: rolesWithPrefix },
+            { headers: { action: "add" } }
+        ).then(response => {
             return updateRoles();
-        }).then(() => {
+        }).then(response => {
             setSelectedAvailableRoles([]); //refreshes window
+            showToast(response.data);
         }).catch(err => showToast(err.response?.data, "error"));
     };
 
