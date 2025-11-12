@@ -3,10 +3,10 @@ package com.app.service;
 import com.app.dto.VehicleDto;
 import com.app.events.EventType;
 import com.app.events.VehicleEvent;
+import com.app.model.UserEntity;
 import com.app.model.Vehicle;
 import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
-import com.app.security.SecurityUtil;
 import com.app.specifications.VehicleSpecifications;
 import com.app.converters.VehicleDtoToVehicle;
 import com.app.converters.VehicleToVehicleDto;
@@ -46,13 +46,10 @@ public class VehicleService {
         return PageRequest.of(pageNo, 10);
     }
 
-    private Long getUser() {
-        String username = SecurityUtil.getSessionUser();
-        return userRepo.findByUsername(username).get().getId();
-    }
-
-    public Page<VehicleDto> getAllVehicles(Integer page) {
-        Page<Vehicle> vehiclePage = vehicleRepo.findByUserId(getUser(), getPage(page));
+    public Page<VehicleDto> getAllVehicles(String username, Integer page) {
+        if (userRepo.findByUsername(username).isEmpty()) return null;
+        UserEntity user = userRepo.findByUsername(username).get();
+        Page<Vehicle> vehiclePage = vehicleRepo.findByUserId(user.getId(), getPage(page));
         return vehiclePage.map(vehicleConverter::convert);
     }
 
@@ -111,23 +108,27 @@ public class VehicleService {
         return specification;
     }
 
-    public Page<VehicleDto> searchVehicles(Integer page, HashMap<String, String> searchCriteria) {
+    public Page<VehicleDto> searchVehicles(String username, Integer page, HashMap<String, String> searchCriteria) {
         Specification<Vehicle> specification = getSpecification(searchCriteria);
-        specification = specification.and(VehicleSpecifications.containsUserId(getUser()));
+        if (userRepo.findByUsername(username).isEmpty()) return null;
+        UserEntity user = userRepo.findByUsername(username).get();
+        specification = specification.and(VehicleSpecifications.containsUserId(user.getId()));
         Page<Vehicle> vehiclePage = vehicleRepo.findAll(specification, getPage(page));
         return vehiclePage.map(vehicleConverter::convert);
     }
 
     @Transactional
-    public void addVehicle(VehicleDto vehicleDto) {
-        vehicleDto.setUserId(getUser());
+    public void addVehicle(String username, VehicleDto vehicleDto) {
+        if (userRepo.findByUsername(username).isEmpty()) return;
+        UserEntity user = userRepo.findByUsername(username).get();
+        vehicleDto.setUserId(user.getId());
         vehicleDto.setCreatedAt(Instant.now());
         Vehicle vehicle = vehicleDtoConverter.convert(vehicleDto);
         vehicleRepo.save(vehicle);
         VehicleEvent vehicleEvent = new VehicleEvent(
                 EventType.CREATED,
                 vehicle,
-                getUser(),
+                user.getId(),
                 Instant.now()
         );
         eventPublisher.publishEvent(vehicleEvent);

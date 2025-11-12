@@ -14,20 +14,22 @@ import org.springframework.web.bind.annotation.*;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final SecurityUtil securityUtil;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(NotificationService notificationService, SecurityUtil securityUtil) {
         this.notificationService = notificationService;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping
     public NotificationsDto getAllNotifications(@RequestParam(name = "page", defaultValue = "1") Integer page) {
-        Page<NotificationDto> notificationDtoPage = notificationService.getAllNotifications(page);
+        Page<NotificationDto> notificationDtoPage = notificationService.getAllNotifications(securityUtil.getSessionUser(), page);
         return new NotificationsDto(notificationDtoPage);
     }
 
     @PostMapping("/read")
     public ResponseEntity<String> readNotification(@RequestBody NotificationDto notificationDto) {
-        String username = SecurityUtil.getSessionUser();
+        String username = securityUtil.getSessionUser();
         if (username != null) {
             if (notificationService.readNotification(notificationDto.getId()))
                 return ResponseEntity.status(HttpStatus.OK).body("Message marked as read.");

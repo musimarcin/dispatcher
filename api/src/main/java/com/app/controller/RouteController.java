@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.dto.RouteDto;
 import com.app.dto.RoutesDto;
+import com.app.security.SecurityUtil;
 import com.app.service.RouteService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -17,14 +18,16 @@ import java.util.HashMap;
 public class RouteController {
 
     private final RouteService routeService;
+    private final SecurityUtil securityUtil;
 
-    public RouteController(RouteService routeService) {
+    public RouteController(RouteService routeService, SecurityUtil securityUtil) {
         this.routeService = routeService;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping
     public RoutesDto getAllRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page) {
-        Page<RouteDto> routePage = routeService.getAllRoutes(page);
+        Page<RouteDto> routePage = routeService.getAllRoutes(securityUtil.getSessionUser(), page);
         return new RoutesDto(routePage);
     }
 
@@ -38,7 +41,7 @@ public class RouteController {
     @PostMapping("/search")
     public RoutesDto searchRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                   @RequestBody HashMap<String, String> searchCriteria) {
-        Page<RouteDto> routeDtoPage = routeService.searchRoute(page, searchCriteria);
+        Page<RouteDto> routeDtoPage = routeService.searchRoute(securityUtil.getSessionUser(), page, searchCriteria);
         return new RoutesDto(routeDtoPage);
     }
 
@@ -50,15 +53,16 @@ public class RouteController {
                     errorMessage.append(e.getDefaultMessage()).append(" "));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
         }
-        routeService.addRoute(routeDto);
+        routeService.addRoute(securityUtil.getSessionUser(), routeDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("Route added successfully");
     }
 
     @DeleteMapping
     public ResponseEntity<String> deleteRoute(@RequestParam(name = "id") @Valid String id) {
         Long routeId = Long.valueOf(id);
-        boolean isDeleted = routeService.deleteRoute(routeId);
-        if (isDeleted) return ResponseEntity.status(HttpStatus.OK).body("Route deleted successfully");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Route not found");
+        if (!routeService.deleteRoute(routeId))
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Route not found");
+
+        return ResponseEntity.status(HttpStatus.OK).body("Route deleted successfully");
     }
 }

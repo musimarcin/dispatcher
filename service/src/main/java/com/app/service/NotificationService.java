@@ -2,9 +2,9 @@ package com.app.service;
 
 import com.app.dto.NotificationDto;
 import com.app.model.Notification;
+import com.app.model.UserEntity;
 import com.app.repository.NotificationRepo;
 import com.app.repository.UserRepo;
-import com.app.security.SecurityUtil;
 import com.app.converters.NotificationToNotificationDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,13 +30,10 @@ public class NotificationService {
         return PageRequest.of(pageNo, 10);
     }
 
-    private Long getUser() {
-        String username = SecurityUtil.getSessionUser();
-        return userRepo.findByUsername(username).get().getId();
-    }
-
-    public Page<NotificationDto> getAllNotifications(Integer page) {
-        Page<Notification> notificationPage = notificationRepo.findByUserId(getUser(), getPage(page));
+    public Page<NotificationDto> getAllNotifications(String username, Integer page) {
+        if (userRepo.findByUsername(username).isEmpty()) return null;
+        UserEntity user = userRepo.findByUsername(username).get();
+        Page<Notification> notificationPage = notificationRepo.findByUserId(user.getId(), getPage(page));
         return notificationPage.map(notificationConverter::convert);
     }
 

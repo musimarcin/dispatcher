@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.dto.VehicleDto;
 import com.app.dto.VehiclesDto;
+import com.app.security.SecurityUtil;
 import com.app.service.VehicleService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -17,22 +18,24 @@ import java.util.HashMap;
 public class VehicleController {
 
     private final VehicleService vehicleService;
+    private final SecurityUtil securityUtil;
 
 
-    public VehicleController(VehicleService vehicleService) {
+    public VehicleController(VehicleService vehicleService, SecurityUtil securityUtil) {
         this.vehicleService = vehicleService;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping
     public VehiclesDto getAllVehicles(@RequestParam(name = "page", defaultValue = "1" ) Integer page) {
-        Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(page);
+        Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(securityUtil.getSessionUser(), page);
         return new VehiclesDto(vehicleDtoPage);
     }
 
     @PostMapping("/search")
     public VehiclesDto searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestBody HashMap<String, String> searchCriteria) {
-        Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(page, searchCriteria);
+        Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(securityUtil.getSessionUser(), page, searchCriteria);
         return new VehiclesDto(vehicleDtoPage);
     }
 
@@ -44,15 +47,16 @@ public class VehicleController {
                     errorMessage.append(e.getDefaultMessage()).append(" "));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
         }
-        vehicleService.addVehicle(vehicleDto);
+        vehicleService.addVehicle(securityUtil.getSessionUser(), vehicleDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("Vehicle added successfully");
     }
 
     @DeleteMapping
     public ResponseEntity<String> deleteVehicle(@RequestParam(name = "licensePlate") @Valid String licensePlate) {
-        boolean isDeleted = vehicleService.deleteVehicle(licensePlate);
-        if (isDeleted) return ResponseEntity.status(HttpStatus.OK).body("Vehicle deleted successfully");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
+        if (!vehicleService.deleteVehicle(licensePlate))
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
+
+        return ResponseEntity.status(HttpStatus.OK).body("Vehicle deleted successfully");
     }
 
 }
