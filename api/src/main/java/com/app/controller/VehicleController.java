@@ -27,16 +27,20 @@ public class VehicleController {
     }
 
     @GetMapping
-    public VehiclesDto getAllVehicles(@RequestParam(name = "page", defaultValue = "1" ) Integer page) {
+    public ResponseEntity<?> getAllVehicles(@RequestParam(name = "page", defaultValue = "1" ) Integer page) {
         Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(securityUtil.getSessionUser(), page);
-        return new VehiclesDto(vehicleDtoPage);
+        if (vehicleDtoPage == null)
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No vehicles found");
+        return ResponseEntity.status(HttpStatus.OK).body(new VehiclesDto(vehicleDtoPage));
     }
 
     @PostMapping("/search")
-    public VehiclesDto searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
+    public ResponseEntity<?> searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestBody HashMap<String, String> searchCriteria) {
         Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(securityUtil.getSessionUser(), page, searchCriteria);
-        return new VehiclesDto(vehicleDtoPage);
+        if (vehicleDtoPage == null)
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No vehicles found");
+        return ResponseEntity.status(HttpStatus.OK).body(new VehiclesDto(vehicleDtoPage));
     }
 
     @PostMapping
@@ -55,7 +59,6 @@ public class VehicleController {
     public ResponseEntity<String> deleteVehicle(@RequestParam(name = "licensePlate") @Valid String licensePlate) {
         if (!vehicleService.deleteVehicle(licensePlate))
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
-
         return ResponseEntity.status(HttpStatus.OK).body("Vehicle deleted successfully");
     }
 

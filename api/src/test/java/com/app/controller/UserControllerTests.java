@@ -1,8 +1,6 @@
 package com.app.controller;
 
 import com.app.dto.UserDto;
-import com.app.model.Role;
-import com.app.model.UserEntity;
 import com.app.security.CustomUserDetailService;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
@@ -55,28 +53,19 @@ public class UserControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private UserEntity userJohn;
-    private UserEntity userAdam;
-    private UserEntity userAsdf;
     private UserDto userDtoJohn;
     private UserDto userDtoAdam;
-    private UserDto userDtoAsdf;
 
     @BeforeEach
     void setUp() {
-        userJohn = UserEntity.builder().id(1L).username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of(Role.ROLE_DISPATCHER))).build();
-        userAdam = UserEntity.builder().id(2L).username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of(Role.ROLE_DRIVER))).build();
-        userAsdf = UserEntity.builder().id(3L).username("Asdf").password("qwerty").email("asdf@qwerty").roles(new HashSet<>(Set.of(Role.ROLE_DISPATCHER, Role.ROLE_DRIVER))).build();
-
         userDtoJohn = UserDto.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("ROLE_DISPATCHER"))).build();
         userDtoAdam = UserDto.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("ROLE_DRIVER"))).build();
-        userDtoAsdf = UserDto.builder().username("Asdf").password("qwerty").email("asdf@qwerty").roles(new HashSet<>(Set.of("ROLE_DISPATCHER", "ROLE_DRIVER"))).build();
     }
 
 
 
     @Test
-    public void givenNewUser_whenCreate_thenReturnCreated() throws Exception {
+    void givenNewUser_whenCreate_thenReturnCreated() throws Exception {
         // given
         given(userService.createUser(any(UserDto.class))).willReturn(userDtoJohn);
 
@@ -93,7 +82,7 @@ public class UserControllerTests {
     }
 
     @Test
-    public void givenExistingUser_whenCreate_thenReturnAlreadyExisting() throws Exception {
+    void givenExistingUser_whenCreate_thenReturnAlreadyExisting() throws Exception {
         given(userService.createUser(any(UserDto.class))).willReturn(null);
 
         mockMvc.perform(post("/api/auth/register")
@@ -351,7 +340,5 @@ public class UserControllerTests {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Failed to update roles"));
     }
-
-
 
 }
