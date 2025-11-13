@@ -94,10 +94,10 @@ function Settings({showToast}) {
             { headers: { action: "remove" } }
         ).then(() => {
             return updateRoles();
-        }).then(() => {
+        }).then(res => {
             setSelectedUserRoles([]); //refreshes window
-            showToast(response.data);
-        }).catch(err => showToast(err.response?.data, "error"));
+            showToast(res.data);
+        }).catch(err => showToast(err.res?.data, "error"));
     };
 
     const addRoles = async (e) => {

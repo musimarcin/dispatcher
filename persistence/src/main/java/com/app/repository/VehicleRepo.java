@@ -15,5 +15,5 @@ public interface VehicleRepo extends JpaRepository<Vehicle, Long>, JpaSpecificat
 
     Page<Vehicle> findByUserId(Long userId, Pageable pageable);
 
-    Optional<Vehicle> findByLicensePlate(String licensePlate);
+    Optional<Vehicle> findByUserIdAndLicensePlate(Long userId, String licensePlate);
 }

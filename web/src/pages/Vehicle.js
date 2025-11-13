@@ -38,9 +38,9 @@ function Vehicle({showToast}) {
             lastMaintenance: vehicle.lastMaintenance || null,
         })
         .then(res => {
-            showToast(res.data, "success");
+            showToast(res.data.message, "success");
             navigate("/");
-        }).catch(err => showToast(err.response?.data, "error"));
+        }).catch(err => showToast(err.response?.data.message, "error"));
     };
 
     return (

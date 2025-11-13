@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/route")
@@ -26,39 +27,47 @@ public class RouteController {
     }
 
     @GetMapping
-    public RoutesDto getAllRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page) {
+    public ResponseEntity<?> getAllRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page) {
         Page<RouteDto> routePage = routeService.getAllRoutes(securityUtil.getSessionUser(), page);
-        return new RoutesDto(routePage);
+        if (routePage == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routePage));
     }
 
     @GetMapping("/vehicle")
-    public RoutesDto getVehicleRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
+    public ResponseEntity<?> getVehicleRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestParam(name = "licensePlate") String licensePlate) {
-        Page<RouteDto> routePage = routeService.getVehicleRoutes(licensePlate, page);
-        return new RoutesDto(routePage);
+        if (securityUtil.getSessionUser().isEmpty())
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        Page<RouteDto> routePage = routeService.getVehicleRoutes(securityUtil.getSessionUser(), licensePlate, page);
+        return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routePage));
     }
 
     @PostMapping("/search")
-    public RoutesDto searchRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
+    public ResponseEntity<?> searchRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                   @RequestBody HashMap<String, String> searchCriteria) {
         Page<RouteDto> routeDtoPage = routeService.searchRoute(securityUtil.getSessionUser(), page, searchCriteria);
-        return new RoutesDto(routeDtoPage);
+        if (routeDtoPage == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routeDtoPage));
     }
 
     @PostMapping
-    public ResponseEntity<String> addRoute(@RequestBody @Valid RouteDto routeDto, BindingResult bindingResult) {
+    public ResponseEntity<?> addRoute(@RequestBody @Valid RouteDto routeDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
             bindingResult.getAllErrors().forEach(e ->
                     errorMessage.append(e.getDefaultMessage()).append(" "));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
         }
-        routeService.addRoute(securityUtil.getSessionUser(), routeDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Route added successfully");
+        RouteDto created = routeService.addRoute(securityUtil.getSessionUser(), routeDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Route added successfully", "route", created));
     }
 
     @DeleteMapping
     public ResponseEntity<String> deleteRoute(@RequestParam(name = "id") @Valid String id) {
+        if (securityUtil.getSessionUser().isEmpty())
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Long routeId = Long.valueOf(id);
         if (!routeService.deleteRoute(routeId))
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Route not found");

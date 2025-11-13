@@ -2,6 +2,7 @@ package com.app.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.util.Date;
 
 @Data
 @AllArgsConstructor
+@Builder
 public class VehicleDto {
     private Long id;
     @NotBlank(message = "License plate is required")

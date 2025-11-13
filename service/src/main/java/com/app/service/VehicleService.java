@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -53,7 +54,7 @@ public class VehicleService {
         return vehiclePage.map(vehicleConverter::convert);
     }
 
-    private Specification<Vehicle> getSpecification(HashMap<String, String> searchCriteria) {
+    private Specification<Vehicle> getSpecification(Map<String, String> searchCriteria) {
         Specification<Vehicle> specification = Specification.where(null);
 
         if (StringUtils.hasLength(searchCriteria.get("licensePlate")))
@@ -108,7 +109,7 @@ public class VehicleService {
         return specification;
     }
 
-    public Page<VehicleDto> searchVehicles(String username, Integer page, HashMap<String, String> searchCriteria) {
+    public Page<VehicleDto> searchVehicles(String username, Integer page, Map<String, String> searchCriteria) {
         Specification<Vehicle> specification = getSpecification(searchCriteria);
         if (userRepo.findByUsername(username).isEmpty()) return null;
         UserEntity user = userRepo.findByUsername(username).get();
@@ -118,8 +119,8 @@ public class VehicleService {
     }
 
     @Transactional
-    public void addVehicle(String username, VehicleDto vehicleDto) {
-        if (userRepo.findByUsername(username).isEmpty()) return;
+    public VehicleDto addVehicle(String username, VehicleDto vehicleDto) {
+        if (userRepo.findByUsername(username).isEmpty()) return null;
         UserEntity user = userRepo.findByUsername(username).get();
         vehicleDto.setUserId(user.getId());
         vehicleDto.setCreatedAt(Instant.now());
@@ -132,11 +133,14 @@ public class VehicleService {
                 Instant.now()
         );
         eventPublisher.publishEvent(vehicleEvent);
+        return vehicleConverter.convert(vehicle);
     }
 
     @Transactional
-    public boolean deleteVehicle(String licensePlate) {
-        Optional<Vehicle> route = vehicleRepo.findByLicensePlate(licensePlate);
+    public boolean deleteVehicle(String username, String licensePlate) {
+        if (userRepo.findByUsername(username).isEmpty()) return false;
+        UserEntity user = userRepo.findByUsername(username).get();
+        Optional<Vehicle> route = vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate);
         route.ifPresent(vehicleRepo::delete);
         return true;
     }

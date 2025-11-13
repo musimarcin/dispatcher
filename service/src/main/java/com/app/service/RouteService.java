@@ -1,6 +1,7 @@
 package com.app.service;
 
 import com.app.dto.RouteDto;
+import com.app.dto.RoutesDto;
 import com.app.events.EventType;
 import com.app.events.RouteEvent;
 import com.app.model.Route;
@@ -28,6 +29,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -61,16 +63,16 @@ public class RouteService {
         return routePage.map(routeConverter::convert);
     }
 
-    public Page<RouteDto> getVehicleRoutes(String licensePlate, Integer page) {
-        Vehicle vehicle;
-        if (vehicleRepo.findByLicensePlate(licensePlate).isPresent()) {
-            vehicle = vehicleRepo.findByLicensePlate(licensePlate).get();
-        } else return null;
+    public Page<RouteDto> getVehicleRoutes(String username, String licensePlate, Integer page) {
+        if (userRepo.findByUsername(username).isEmpty()) return null;
+        UserEntity user = userRepo.findByUsername(username).get();
+        if (vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).isEmpty()) return null;
+        Vehicle vehicle = vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).get();
         Page<Route> routePage = routeRepo.findByVehicle(vehicle, getPage(page));
         return routePage.map(routeConverter::convert);
     }
 
-    private Specification<Route> getSpecification(HashMap<String, String> searchCriteria) {
+    private Specification<Route> getSpecification(Map<String, String> searchCriteria) {
         Specification<Route> specification = Specification.where(null);
 
         if (StringUtils.hasText(searchCriteria.get("status")))
@@ -140,7 +142,7 @@ public class RouteService {
         return specification;
     }
 
-    public Page<RouteDto> searchRoute(String username, Integer page, HashMap<String, String> searchCriteria) {
+    public Page<RouteDto> searchRoute(String username, Integer page, Map<String, String> searchCriteria) {
         if (userRepo.findByUsername(username).isEmpty()) return null;
         UserEntity user = userRepo.findByUsername(username).get();
         Specification<Route> specification = getSpecification(searchCriteria);
@@ -150,8 +152,8 @@ public class RouteService {
     }
 
     @Transactional
-    public void addRoute(String username, RouteDto routeDto) {
-        if (userRepo.findByUsername(username).isEmpty()) return;
+    public RouteDto addRoute(String username, RouteDto routeDto) {
+        if (userRepo.findByUsername(username).isEmpty()) return null;
         UserEntity user = userRepo.findByUsername(username).get();
         routeDto.setUserId(user.getId());
         routeDto.setCreatedAt(Instant.now());
@@ -164,6 +166,7 @@ public class RouteService {
                 Instant.now()
         );
         eventPublisher.publishEvent(routeEvent);
+        return routeConverter.convert(route);
     }
 
     @Transactional
