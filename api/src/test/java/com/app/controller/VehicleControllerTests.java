@@ -73,7 +73,7 @@ public class VehicleControllerTests {
         given(securityUtil.getSessionUser()).willReturn("John");
         given(vehicleService.getAllVehicles("John", 1)).willReturn(vehiclesDto);
 
-        mockMvc.perform(get("/api/vehicles")
+        mockMvc.perform(get("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.vehicleDtoList[0].licensePlate").value("1234"));
@@ -83,7 +83,7 @@ public class VehicleControllerTests {
     void givenNonLoggedInUser_whenGetAllVehicles_thenReturnNoContent() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
-        mockMvc.perform(get("/api/vehicles")
+        mockMvc.perform(get("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().string("Not logged in"));
@@ -94,7 +94,7 @@ public class VehicleControllerTests {
         given(securityUtil.getSessionUser()).willReturn("John");
         given(vehicleService.searchVehicles("John", 1, Map.of("licensePlate", "1234"))).willReturn(vehiclesDto);
 
-        mockMvc.perform(post("/api/vehicles/search")
+        mockMvc.perform(post("/api/vehicle/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "1234"))))
                 .andExpect(status().isOk())
@@ -105,7 +105,7 @@ public class VehicleControllerTests {
     void givenNonLoggedInUser_whenSearchVehicles_thenReturnNoContent() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
-        mockMvc.perform(post("/api/vehicles/search")
+        mockMvc.perform(post("/api/vehicle/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "1234"))))
                 .andExpect(status().isUnauthorized())
@@ -117,7 +117,7 @@ public class VehicleControllerTests {
         given(securityUtil.getSessionUser()).willReturn("John");
         given(vehicleService.addVehicle("John", vehicleDto)).willReturn(vehicleDto);
 
-        mockMvc.perform(post("/api/vehicles")
+        mockMvc.perform(post("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vehicleDto)))
                 .andExpect(status().isCreated())
@@ -128,7 +128,7 @@ public class VehicleControllerTests {
     void givenNonLoggedInUser_whenAddVehicle_thenReturnUnAuthorized() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
-        mockMvc.perform(post("/api/vehicles")
+        mockMvc.perform(post("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vehicleDto)))
                 .andExpect(status().isUnauthorized())
@@ -144,7 +144,7 @@ public class VehicleControllerTests {
         given(bindingResult.getAllErrors()).willReturn(List.of(new ObjectError("licensePlate", "License plate is required")));
         given(vehicleService.addVehicle("John", vehicleDto)).willReturn(vehicleDto);
 
-        mockMvc.perform(post("/api/vehicles")
+        mockMvc.perform(post("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vehicleDto)))
                 .andExpect(status().isBadRequest())
@@ -176,7 +176,6 @@ public class VehicleControllerTests {
     @Test
     void givenNonLoggedInUser_whenDeleteVehicle_thenReturnNotFound() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
-        given(vehicleService.deleteVehicle("John", "9999")).willReturn(false);
 
         mockMvc.perform(delete("/api/vehicle")
                         .param("licensePlate", "9999"))

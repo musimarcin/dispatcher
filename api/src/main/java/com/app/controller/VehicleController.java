@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/vehicles")
+@RequestMapping("/api/vehicle")
 public class VehicleController {
 
     private final VehicleService vehicleService;
