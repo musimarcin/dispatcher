@@ -17,6 +17,7 @@ import io.mongock.utils.StringUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,10 +28,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class RouteService {
@@ -66,7 +64,7 @@ public class RouteService {
     public Page<RouteDto> getVehicleRoutes(String username, String licensePlate, Integer page) {
         if (userRepo.findByUsername(username).isEmpty()) return null;
         UserEntity user = userRepo.findByUsername(username).get();
-        if (vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).isEmpty()) return null;
+        if (vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).isEmpty()) return new PageImpl<>(List.of());
         Vehicle vehicle = vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).get();
         Page<Route> routePage = routeRepo.findByVehicle(vehicle, getPage(page));
         return routePage.map(routeConverter::convert);

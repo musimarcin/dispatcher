@@ -40,25 +40,31 @@ public class RouteController {
         if (securityUtil.getSessionUser().isEmpty())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Page<RouteDto> routePage = routeService.getVehicleRoutes(securityUtil.getSessionUser(), licensePlate, page);
+        if (routePage.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Routes not found");
         return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routePage));
     }
 
     @PostMapping("/search")
     public ResponseEntity<?> searchRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                   @RequestBody HashMap<String, String> searchCriteria) {
-        Page<RouteDto> routeDtoPage = routeService.searchRoute(securityUtil.getSessionUser(), page, searchCriteria);
-        if (routeDtoPage == null)
+        if (securityUtil.getSessionUser().isEmpty())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        Page<RouteDto> routeDtoPage = routeService.searchRoute(securityUtil.getSessionUser(), page, searchCriteria);
+        if (routeDtoPage.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Routes not found");
         return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routeDtoPage));
     }
 
     @PostMapping
     public ResponseEntity<?> addRoute(@RequestBody @Valid RouteDto routeDto, BindingResult bindingResult) {
+        if (securityUtil.getSessionUser().isEmpty())
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
             bindingResult.getAllErrors().forEach(e ->
                     errorMessage.append(e.getDefaultMessage()).append(" "));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage.toString());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", errorMessage.toString()));
         }
         RouteDto created = routeService.addRoute(securityUtil.getSessionUser(), routeDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Route added successfully", "route", created));
