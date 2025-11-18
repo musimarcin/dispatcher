@@ -36,72 +36,67 @@ public class UserService {
     }
 
     public UserDto createUser(UserDto userDto) {
-        if (!checkUserAndEmail(userDto.getUsername(), userDto.getEmail())) {
-            UserEntity user = userDtoConverter.convert(userDto);
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            userRepo.save(user);
-            return userConverter.convert(user);
-        }
-        return null;
+        if (checkUserAndEmail(userDto.getUsername(), userDto.getEmail())) return null;
+
+        UserEntity user = userDtoConverter.convert(userDto);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepo.save(user);
+        return userConverter.convert(user);
     }
 
     @Transactional
     public boolean deleteUser(String username) {
-        if (userRepo.findByUsername(username).isPresent()) {
-            userRepo.delete(userRepo.findByUsername(username).get());
-            return true;
-        }
-        return false;
+        if (userRepo.findByUsername(username).isEmpty()) return false;
+
+        userRepo.delete(userRepo.findByUsername(username).get());
+        return true;
     }
 
     @Transactional
     public boolean changeUsername(String oldUsername, String newUsername) {
-        if (userRepo.findByUsername(oldUsername).isPresent()
-                && userRepo.findByUsername(newUsername).isEmpty()) {
-            UserEntity user = userRepo.findByUsername(oldUsername).get();
-            System.out.println("SERVICE CHANGEUSERNAME " + oldUsername + " " + newUsername + " user " + user);
-            user.setUsername(newUsername);
-            return true;
-        } else {
-            System.out.println("FALSE BROOOOOOOO");
+        if (userRepo.findByUsername(oldUsername).isEmpty())
             return false;
-        }
+
+        if (userRepo.findByUsername(newUsername).isPresent())
+            return false;
+
+        UserEntity user = userRepo.findByUsername(oldUsername).get();
+        user.setUsername(newUsername);
+        return true;
     }
 
     @Transactional
     public boolean changePassword(String username, String password) {
-        if (userRepo.findByUsername(username).isPresent()) {
-            UserEntity user = userRepo.findByUsername(username).get();
-            user.setPassword(passwordEncoder.encode(password));
-            return true;
-        } else return false;
+        if (userRepo.findByUsername(username).isEmpty()) return false;
+
+        UserEntity user = userRepo.findByUsername(username).get();
+        user.setPassword(passwordEncoder.encode(password));
+        return true;
     }
 
     @Transactional
     public boolean changeEmail(String username, String email) {
-        if (userRepo.findByUsername(username).isPresent()) {
-            UserEntity user = userRepo.findByUsername(username).get();
-            user.setEmail(email);
-            return true;
-        } else return false;
+        if (userRepo.findByUsername(username).isEmpty()) return false;
+
+        UserEntity user = userRepo.findByUsername(username).get();
+        user.setEmail(email);
+        return true;
     }
 
     @Transactional
     public boolean addRoles(String username, Set<String> newRoles) {
         int changes = 0;
-        if (userRepo.findByUsername(username).isPresent()) {
-            UserEntity user = userRepo.findByUsername(username).get();
-            Set<Role> roles = newRoles.stream()
-                    .map(Role::valueOf)
-                    .collect(Collectors.toSet());
-            for (Role r : roles) {
-                if (!user.getRoles().contains(r)) {
-                    user.getRoles().add(r);
-                    changes++;
-                }
+        if (userRepo.findByUsername(username).isEmpty()) return false;
+
+        UserEntity user = userRepo.findByUsername(username).get();
+        Set<Role> roles = newRoles.stream()
+                .map(Role::valueOf)
+                .collect(Collectors.toSet());
+        for (Role r : roles) {
+            if (!user.getRoles().contains(r)) {
+                user.getRoles().add(r);
+                changes++;
             }
-        } else {
-            return false;
         }
         return changes > 0;
     }
@@ -112,15 +107,15 @@ public class UserService {
                 .map(Role::valueOf)
                 .collect(Collectors.toSet());
         int changes = 0;
-        if (userRepo.findByUsername(username).isPresent()) {
-            UserEntity user = userRepo.findByUsername(username).get();
-            for (Role r : roles) {
-                if (user.getRoles().contains(r)) {
-                    user.getRoles().remove(r);
-                    changes++;
-                }
+        if (userRepo.findByUsername(username).isEmpty()) return false;
+
+        UserEntity user = userRepo.findByUsername(username).get();
+        for (Role r : roles) {
+            if (user.getRoles().contains(r)) {
+                user.getRoles().remove(r);
+                changes++;
             }
-        } else return false;
+        }
         return changes > 0;
     }
 
@@ -133,14 +128,14 @@ public class UserService {
     }
 
     public Set<String> getUserRoles(String username) {
-        if (userRepo.findByUsername(username).isPresent()) {
-            UserEntity user = userRepo.findByUsername(username).get();
-            Set<Role> roles = user.getRoles();
-            Set<String> res = new HashSet<>();
-            for (Role r : roles) {
-                res.add(r.name().substring(5));
-            }
-            return res;
-        } else return null;
+        if (userRepo.findByUsername(username).isEmpty()) return null;
+
+        UserEntity user = userRepo.findByUsername(username).get();
+        Set<Role> roles = user.getRoles();
+        Set<String> res = new HashSet<>();
+        for (Role r : roles) {
+            res.add(r.name().substring(5));
+        }
+        return res;
     }
 }

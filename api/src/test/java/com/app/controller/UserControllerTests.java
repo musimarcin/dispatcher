@@ -63,7 +63,6 @@ public class UserControllerTests {
     }
 
 
-
     @Test
     void givenNewUser_whenCreate_thenReturnCreated() throws Exception {
         // given

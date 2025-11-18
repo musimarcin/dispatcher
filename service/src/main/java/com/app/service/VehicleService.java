@@ -3,7 +3,6 @@ package com.app.service;
 import com.app.dto.VehicleDto;
 import com.app.events.EventType;
 import com.app.events.VehicleEvent;
-import com.app.model.Route;
 import com.app.model.UserEntity;
 import com.app.model.Vehicle;
 import com.app.repository.UserRepo;
@@ -22,9 +21,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class VehicleService {
