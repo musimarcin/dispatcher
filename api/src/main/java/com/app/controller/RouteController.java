@@ -36,8 +36,8 @@ public class RouteController {
 
     @GetMapping("/vehicle")
     public ResponseEntity<?> getVehicleRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
-                                      @RequestParam(name = "licensePlate") String licensePlate) {
-        if (securityUtil.getSessionUser().isEmpty())
+                                      @RequestParam(name = "licensePlate", defaultValue = "") String licensePlate) {
+        if (securityUtil.getSessionUser() == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Page<RouteDto> routePage = routeService.getVehicleRoutes(securityUtil.getSessionUser(), licensePlate, page);
         if (routePage.isEmpty())
@@ -48,7 +48,7 @@ public class RouteController {
     @PostMapping("/search")
     public ResponseEntity<?> searchRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                   @RequestBody HashMap<String, String> searchCriteria) {
-        if (securityUtil.getSessionUser().isEmpty())
+        if (securityUtil.getSessionUser() == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Page<RouteDto> routeDtoPage = routeService.searchRoute(securityUtil.getSessionUser(), page, searchCriteria);
         if (routeDtoPage.isEmpty())
@@ -58,7 +58,7 @@ public class RouteController {
 
     @PostMapping
     public ResponseEntity<?> addRoute(@RequestBody @Valid RouteDto routeDto, BindingResult bindingResult) {
-        if (securityUtil.getSessionUser().isEmpty())
+        if (securityUtil.getSessionUser() == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
@@ -72,10 +72,10 @@ public class RouteController {
 
     @DeleteMapping
     public ResponseEntity<String> deleteRoute(@RequestParam(name = "id") @Valid String id) {
-        if (securityUtil.getSessionUser().isEmpty())
+        if (securityUtil.getSessionUser() == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Long routeId = Long.valueOf(id);
-        if (!routeService.deleteRoute(routeId))
+        if (!routeService.deleteRoute(securityUtil.getSessionUser(), routeId))
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Route not found");
 
         return ResponseEntity.status(HttpStatus.OK).body("Route deleted successfully");

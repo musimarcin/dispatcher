@@ -3,6 +3,7 @@ package com.app.service;
 import com.app.dto.VehicleDto;
 import com.app.events.EventType;
 import com.app.events.VehicleEvent;
+import com.app.model.Route;
 import com.app.model.UserEntity;
 import com.app.model.Vehicle;
 import com.app.repository.UserRepo;
@@ -140,8 +141,17 @@ public class VehicleService {
     public boolean deleteVehicle(String username, String licensePlate) {
         if (userRepo.findByUsername(username).isEmpty()) return false;
         UserEntity user = userRepo.findByUsername(username).get();
-        Optional<Vehicle> route = vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate);
-        route.ifPresent(vehicleRepo::delete);
+        if (vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).isEmpty())
+            return false;
+        Vehicle vehicle = vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).get();
+        vehicleRepo.delete(vehicle);
+        VehicleEvent vehicleEvent = new VehicleEvent(
+                EventType.CREATED,
+                vehicle,
+                user.getId(),
+                Instant.now()
+        );
+        eventPublisher.publishEvent(vehicleEvent);
         return true;
     }
 

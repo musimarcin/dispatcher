@@ -168,9 +168,18 @@ public class RouteService {
     }
 
     @Transactional
-    public boolean deleteRoute(Long id) {
-        Optional<Route> route = routeRepo.findById(id);
-        route.ifPresent(routeRepo::delete);
+    public boolean deleteRoute(String username, Long id) {
+        if (userRepo.findByUsername(username).isEmpty()) return false;
+        if (routeRepo.findById(id).isEmpty()) return false;
+        Route route = routeRepo.findById(id).get();
+        routeRepo.delete(route);
+        RouteEvent routeEvent = new RouteEvent(
+                EventType.CREATED,
+                route,
+                userRepo.findByUsername(username).get().getId(),
+                Instant.now()
+        );
+        eventPublisher.publishEvent(routeEvent);
         return true;
     }
 }

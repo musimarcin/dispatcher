@@ -198,11 +198,11 @@ public class RouteControllerTests {
 
     @Test
     void givenNonLoggedInUser_whenAddRoute_thenReturnUnauthorized() throws Exception {
-        given(securityUtil.getSessionUser()).willReturn("John");
+        given(securityUtil.getSessionUser()).willReturn(null);
 
         mockMvc.perform(post("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .param("id", "1"))
+                        .content(objectMapper.writeValueAsString(routeDto)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().string("Not logged in"));
     }
@@ -210,7 +210,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUser_whenDeleteRoute_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.deleteRoute(1L)).willReturn(true);
+        given(routeService.deleteRoute("John", 1L)).willReturn(true);
 
         mockMvc.perform(delete("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -222,7 +222,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUserAndInvalidRoute_whenDeleteRoute_thenReturnNotFound() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.deleteRoute(2L)).willReturn(false);
+        given(routeService.deleteRoute("John", 2L)).willReturn(false);
 
         mockMvc.perform(delete("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)

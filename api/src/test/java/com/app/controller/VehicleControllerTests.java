@@ -78,7 +78,7 @@ public class VehicleControllerTests {
     }
 
     @Test
-    void givenNonLoggedInUser_whenGetAllVehicles_thenReturnNoContent() throws Exception {
+    void givenNonLoggedInUser_whenGetAllVehicles_thenReturnUnauthorized() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
         mockMvc.perform(get("/api/vehicle")
@@ -100,7 +100,7 @@ public class VehicleControllerTests {
     }
 
     @Test
-    void givenNonLoggedInUser_whenSearchVehicles_thenReturnNoContent() throws Exception {
+    void givenNonLoggedInUser_whenSearchVehicles_thenReturnUnauthorized() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
         mockMvc.perform(post("/api/vehicle/search")

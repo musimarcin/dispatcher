@@ -28,7 +28,6 @@ public class RouteDto {
     private Date endTime;
     private RouteStatus status;
     private Instant createdAt;
-    @NotBlank(message = "Vehicle plate is required")
     private VehicleDto vehicleDto;
     private List<RoutePointDto> waypoints;
     private Long userId;
