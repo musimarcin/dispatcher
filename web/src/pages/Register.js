@@ -19,7 +19,7 @@ function Register({showToast}) {
         if (storedRoles) {
             setRoles(JSON.parse(storedRoles))
         } else {
-            api.get("/auth/roles")
+            api.get("/user/roles")
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));

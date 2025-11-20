@@ -14,6 +14,7 @@ import java.util.List;
 @Table(name = "routes")
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Route {

@@ -184,20 +184,6 @@ function Route({showToast}) {
         const waypoints = route.waypoints.map(wp => L.latLng(wp.latitude, wp.longitude));
 
         updateRoute(waypoints);
-
-//        if (routingControlRef.current) {
-//            routingControlRef.current.setWaypoints(waypoints);
-//        } else {
-//            routingControlRef.current = L.Routing.control({
-//                waypoints,
-//                router: L.Routing.osrmv1({
-//                    serviceUrl: "http://localhost:8080/osrm/route/v1",
-//                }),
-//                createMarker: (i, wp) => L.marker(wp.latLng, { icon: customIcon }),
-//            }).addTo(mapRef.current);
-//        }
-//        const group = new L.featureGroup(waypoints.map((c) => L.marker(c)));
-//        mapRef.current.fitBounds(group.getBounds(), { padding: [50, 50] });
     };
 
     const handleVehicleChange = (e) => {

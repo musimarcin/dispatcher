@@ -28,9 +28,11 @@ public class RouteController {
 
     @GetMapping
     public ResponseEntity<?> getAllRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page) {
-        Page<RouteDto> routePage = routeService.getAllRoutes(securityUtil.getSessionUser(), page);
-        if (routePage == null)
+        if (securityUtil.getSessionUser() == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        Page<RouteDto> routePage = routeService.getAllRoutes(securityUtil.getSessionUser(), page);
+        if (routePage.isEmpty())
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No routes found");
         return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routePage));
     }
 
@@ -41,7 +43,7 @@ public class RouteController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Page<RouteDto> routePage = routeService.getVehicleRoutes(securityUtil.getSessionUser(), licensePlate, page);
         if (routePage.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Routes not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No routes found");
         return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routePage));
     }
 
@@ -52,7 +54,7 @@ public class RouteController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Page<RouteDto> routeDtoPage = routeService.searchRoute(securityUtil.getSessionUser(), page, searchCriteria);
         if (routeDtoPage.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Routes not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No routes found");
         return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routeDtoPage));
     }
 

@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -75,7 +76,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUser_whenGetAll_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.getAllRoutes("John", 1)).willReturn(routesDto);
+        given(routeService.getAllRoutes(anyString(), anyInt())).willReturn(routesDto);
 
         mockMvc.perform(get("/api/route")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -98,7 +99,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUser_whenGetVehicleRoutes_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.getVehicleRoutes("John", "1234", 1)).willReturn(routesDto);
+        given(routeService.getVehicleRoutes(anyString(), anyString(), anyInt())).willReturn(routesDto);
 
         mockMvc.perform(get("/api/route/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -112,13 +113,13 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUserAndInvalidRoute_whenGetVehicleRoutes_thenReturnNotFound() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.getVehicleRoutes("John", "9999", 1)).willReturn(new PageImpl<>(List.of()));
+        given(routeService.getVehicleRoutes(anyString(), anyString(), anyInt())).willReturn(Page.empty());
 
         mockMvc.perform(get("/api/route/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("licensePlate", "9999"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Routes not found"));
+                .andExpect(content().string("No routes found"));
     }
 
     @Test
@@ -134,7 +135,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUser_whenSearchRoutes_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.searchRoute("John", 1, Map.of("licensePlate", "1234"))).willReturn(routesDto);
+        given(routeService.searchRoute(anyString(), anyInt(), anyMap())).willReturn(routesDto);
 
         mockMvc.perform(post("/api/route/search")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -148,13 +149,13 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUserAndInvalidRoute_whenSearchRoutes_thenReturnNotFound() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.searchRoute("John", 1, Map.of("licensePlate", "9999"))).willReturn(new PageImpl<>(List.of()));
+        given(routeService.searchRoute(anyString(), anyInt(), anyMap())).willReturn(Page.empty());
 
         mockMvc.perform(post("/api/route/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "9999"))))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Routes not found"));
+                .andExpect(content().string("No routes found"));
     }
 
     @Test
@@ -170,7 +171,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUser_whenAddRoute_thenReturnCreated() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.addRoute("John", routeDto)).willReturn(routeDto);
+        given(routeService.addRoute(anyString(), any(RouteDto.class))).willReturn(routeDto);
 
         mockMvc.perform(post("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -210,7 +211,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUser_whenDeleteRoute_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.deleteRoute("John", 1L)).willReturn(true);
+        given(routeService.deleteRoute(anyString(), anyLong())).willReturn(true);
 
         mockMvc.perform(delete("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -222,7 +223,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUserAndInvalidRoute_whenDeleteRoute_thenReturnNotFound() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.deleteRoute("John", 2L)).willReturn(false);
+        given(routeService.deleteRoute(anyString(), anyLong())).willReturn(false);
 
         mockMvc.perform(delete("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)

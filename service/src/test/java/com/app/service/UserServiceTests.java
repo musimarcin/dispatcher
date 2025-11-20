@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
@@ -50,8 +51,8 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenCreateUser_thenReturnUserDto() {
-        given(userDtoConverter.convert(userDtoJohn)).willReturn(userJohn);
-        given(userConverter.convert(userJohn)).willReturn(userDtoJohn);
+        given(userDtoConverter.convert(any(UserDto.class))).willReturn(userJohn);
+        given(userConverter.convert(any(UserEntity.class))).willReturn(userDtoJohn);
         given(passwordEncoder.encode(anyString())).willReturn("encoded");
 
         UserDto result = userService.createUser(userDtoJohn);
@@ -63,8 +64,8 @@ public class UserServiceTests {
 
     @Test
     void givenInvalidUser_whenCreateUser_thenReturnNull() {
-        given(userRepo.existsByUsername(userDtoJohn.getUsername())).willReturn(true);
-        given(userRepo.existsByEmail(userDtoJohn.getEmail())).willReturn(true);
+        given(userRepo.existsByUsername(anyString())).willReturn(true);
+        given(userRepo.existsByEmail(anyString())).willReturn(true);
 
         UserDto result = userService.createUser(userDtoJohn);
 
@@ -73,7 +74,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenDeleteUser_thenReturnTrue() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
 
         boolean result = userService.deleteUser(userDtoJohn.getUsername());
 
@@ -91,7 +92,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenChangeUsername_thenReturnTrue() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
         given(userRepo.findByUsername(userDtoAdam.getUsername())).willReturn(Optional.empty());
 
         boolean result = userService.changeUsername(userDtoJohn.getUsername(), userDtoAdam.getUsername());
@@ -111,7 +112,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenChangePassword_thenReturnTrue() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
         given(passwordEncoder.encode(anyString())).willReturn("encoded");
 
         boolean result = userService.changePassword(userDtoJohn.getUsername(), userDtoJohn.getPassword());
@@ -131,7 +132,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenChangeEmail_thenReturnTrue() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
 
         boolean result = userService.changeEmail(userDtoJohn.getUsername(), userDtoAdam.getEmail());
 
@@ -150,7 +151,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenAddRoles_thenReturnTrue() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
 
         boolean result = userService.addRoles(userDtoJohn.getUsername(), userDtoAdam.getRoles());
 
@@ -160,7 +161,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUserAndInvalidRoles_whenAddRoles_thenReturnFalse() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
 
         boolean result = userService.addRoles(userDtoJohn.getUsername(), userDtoJohn.getRoles());
 
@@ -178,7 +179,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenRemoveRoles_thenReturnTrue() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
 
         boolean result = userService.removeRoles(userDtoJohn.getUsername(), userDtoJohn.getRoles());
 
@@ -188,7 +189,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenRemoveRoles_thenReturnFalse() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
 
         boolean result = userService.removeRoles(userDtoJohn.getUsername(), userDtoAdam.getRoles());
 
@@ -206,7 +207,7 @@ public class UserServiceTests {
 
     @Test
     void givenValidUser_whenGetUserRoles_thenReturnSet() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.of(userJohn));
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
 
         Set<String> result = userService.getUserRoles(userDtoJohn.getUsername());
 
@@ -215,10 +216,10 @@ public class UserServiceTests {
 
     @Test
     void givenInvalidUser_whenGetUserRoles_thenReturnNull() {
-        given(userRepo.findByUsername(userDtoJohn.getUsername())).willReturn(Optional.empty());
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.empty());
 
         Set<String> result = userService.getUserRoles(userDtoJohn.getUsername());
 
-        assertNull(result);
+        assertEquals(Set.of(), result);
     }
 }

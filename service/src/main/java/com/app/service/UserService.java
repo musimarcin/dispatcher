@@ -10,10 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,55 +43,55 @@ public class UserService {
 
     @Transactional
     public boolean deleteUser(String username) {
-        if (userRepo.findByUsername(username).isEmpty()) return false;
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return false;
 
-        userRepo.delete(userRepo.findByUsername(username).get());
+        userRepo.delete(user.get());
         return true;
     }
 
     @Transactional
     public boolean changeUsername(String oldUsername, String newUsername) {
-        if (userRepo.findByUsername(oldUsername).isEmpty())
-            return false;
+        Optional<UserEntity> user = userRepo.findByUsername(oldUsername);
+        if (user.isEmpty()) return false;
 
         if (userRepo.findByUsername(newUsername).isPresent())
             return false;
 
-        UserEntity user = userRepo.findByUsername(oldUsername).get();
-        user.setUsername(newUsername);
+        user.get().setUsername(newUsername);
         return true;
     }
 
     @Transactional
     public boolean changePassword(String username, String password) {
-        if (userRepo.findByUsername(username).isEmpty()) return false;
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return false;
 
-        UserEntity user = userRepo.findByUsername(username).get();
-        user.setPassword(passwordEncoder.encode(password));
+        user.get().setPassword(passwordEncoder.encode(password));
         return true;
     }
 
     @Transactional
     public boolean changeEmail(String username, String email) {
-        if (userRepo.findByUsername(username).isEmpty()) return false;
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return false;
 
-        UserEntity user = userRepo.findByUsername(username).get();
-        user.setEmail(email);
+        user.get().setEmail(email);
         return true;
     }
 
     @Transactional
     public boolean addRoles(String username, Set<String> newRoles) {
-        int changes = 0;
-        if (userRepo.findByUsername(username).isEmpty()) return false;
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return false;
 
-        UserEntity user = userRepo.findByUsername(username).get();
+        int changes = 0;
         Set<Role> roles = newRoles.stream()
                 .map(Role::valueOf)
                 .collect(Collectors.toSet());
         for (Role r : roles) {
-            if (!user.getRoles().contains(r)) {
-                user.getRoles().add(r);
+            if (!user.get().getRoles().contains(r)) {
+                user.get().getRoles().add(r);
                 changes++;
             }
         }
@@ -103,16 +100,16 @@ public class UserService {
 
     @Transactional
     public boolean removeRoles(String username, Set<String> newRoles) {
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return false;
+
         Set<Role> roles = newRoles.stream()
                 .map(Role::valueOf)
                 .collect(Collectors.toSet());
         int changes = 0;
-        if (userRepo.findByUsername(username).isEmpty()) return false;
-
-        UserEntity user = userRepo.findByUsername(username).get();
         for (Role r : roles) {
-            if (user.getRoles().contains(r)) {
-                user.getRoles().remove(r);
+            if (user.get().getRoles().contains(r)) {
+                user.get().getRoles().remove(r);
                 changes++;
             }
         }
@@ -128,10 +125,10 @@ public class UserService {
     }
 
     public Set<String> getUserRoles(String username) {
-        if (userRepo.findByUsername(username).isEmpty()) return null;
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return Set.of();
 
-        UserEntity user = userRepo.findByUsername(username).get();
-        Set<Role> roles = user.getRoles();
+        Set<Role> roles = user.get().getRoles();
         Set<String> res = new HashSet<>();
         for (Role r : roles) {
             res.add(r.name().substring(5));

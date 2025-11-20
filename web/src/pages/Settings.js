@@ -20,7 +20,7 @@ function Settings({showToast}) {
         if (storedRoles) {
             setRoles(JSON.parse(storedRoles))
         } else {
-            api.get("/auth/roles")
+            api.get("/user/roles")
             .then(response => {
                 setRoles(response.data);
                 localStorage.setItem("roles", JSON.stringify(response.data));
@@ -48,7 +48,7 @@ function Settings({showToast}) {
     }, []);
 
     const updateRoles = () => {
-        return api.get("/auth/role/user")
+        return api.get("/user/roles/user")
             .then(response => {
                 setUserRoles(response.data);
                 localStorage.setItem("userRoles", JSON.stringify(response.data));
@@ -70,28 +70,44 @@ function Settings({showToast}) {
         setSelectedAvailableRoles(selectedOptions);
     };
 
-    const handleSubmit = async (e) => {
+    const changeUsername = async (e) => {
         e.preventDefault();
 
-        api.put("/auth/change", {
-            username,
-            password,
+        api.put("/user/username",
+            username
+        ).then(res => {
+            showToast(res.data, "success")
+            setUsername("")
+        }).catch(err => showToast(err.response?.data, "error"));
+    }
+
+    const changePassword = async (e) => {
+        e.preventDefault();
+
+        api.put("/user/password",
+            password
+        ).then(res => {
+            showToast(res.data, "success")
+            setPassword("")
+        }).catch(err => showToast(err.response?.data, "error"));
+    }
+    const changeEmail = async (e) => {
+        e.preventDefault();
+
+        api.put("/user/email",
             email
-            }).then(res => {
-                showToast(res.data, "success")
-                setUsername("")
-                setPassword("")
-                setEmail("")
-            }).catch(err => showToast(err.response?.data, "error"));
-    };
+        ).then(res => {
+            showToast(res.data, "success")
+            setEmail("")
+        }).catch(err => showToast(err.response?.data, "error"));
+    }
 
     const removeRoles = async (e) => {
         e.preventDefault();
         const rolesWithPrefix = selectedUserRoles.map(role => "ROLE_" + role);
 
-        api.patch("/auth/roles",
-            { roles: rolesWithPrefix },
-            { headers: { action: "remove" } }
+        api.delete("/user/roles",
+            roles: rolesWithPrefix
         ).then(() => {
             return updateRoles();
         }).then(res => {
@@ -104,9 +120,8 @@ function Settings({showToast}) {
         e.preventDefault();
         const rolesWithPrefix = selectedAvailableRoles.map(role => "ROLE_" + role);
 
-        api.patch("/auth/roles",
-            { roles: rolesWithPrefix },
-            { headers: { action: "add" } }
+        api.post("/user/roles",
+            roles: rolesWithPrefix
         ).then(response => {
             return updateRoles();
         }).then(response => {
@@ -116,7 +131,7 @@ function Settings({showToast}) {
     };
 
     const deleteUser = async (e) => {
-        await api.delete('/auth')
+        await api.delete('/user')
         .then(response => {
             showToast(response.data, "success");
             navigate('/login');
@@ -128,36 +143,42 @@ function Settings({showToast}) {
     return (
         <div className="container mt-4">
             <h2 className="mb-4">Settings</h2>
-            <form onSubmit={handleSubmit} className="mb-4">
-                <div className="mb-3">
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                </div>
-                <div className="mb-3">
-                    <input
-                        type="password"
-                        className="form-control"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                <div className="mb-3">
-                    <input
-                        type="email"
-                        className="form-control"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                </div>
-                <button type="submit" className="btn btn-primary">Change</button>
-            </form>
+            <div className="mb-3">
+                <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                />
+            </div>
+            <button className="btn btn-primary" onClick={changeUsername}>
+                Change Username
+            </button>
+            <div className="mb-3">
+                <input
+                    type="password"
+                    className="form-control"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+            </div>
+            <button className="btn btn-primary" onClick={changePassword}>
+                Change Password
+            </button>
+            <div className="mb-3">
+                <input
+                    type="email"
+                    className="form-control"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+            </div>
+            <button className="btn btn-primary" onClick={changeEmail}>
+                Change Email
+            </button>
 
             <div className="row mb-4">
                 <div className="col-md-6">

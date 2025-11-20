@@ -1,7 +1,6 @@
 package com.app.controller;
 
 import com.app.dto.VehicleDto;
-import com.app.dto.VehiclesDto;
 import com.app.security.CustomUserDetailService;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
@@ -27,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -69,7 +69,7 @@ public class VehicleControllerTests {
     @Test
     void givenLoggedInUser_whenGetAllVehicles_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(vehicleService.getAllVehicles("John", 1)).willReturn(vehiclesDto);
+        given(vehicleService.getAllVehicles(anyString(), anyInt())).willReturn(vehiclesDto);
 
         mockMvc.perform(get("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -90,7 +90,7 @@ public class VehicleControllerTests {
     @Test
     void givenLoggedInUser_whenSearchVehicles_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(vehicleService.searchVehicles("John", 1, Map.of("licensePlate", "1234"))).willReturn(vehiclesDto);
+        given(vehicleService.searchVehicles(anyString(), anyInt(), anyMap())).willReturn(vehiclesDto);
 
         mockMvc.perform(post("/api/vehicle/search")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -113,7 +113,7 @@ public class VehicleControllerTests {
     @Test
     void givenLoggedInUser_whenAddVehicle_thenReturnCreated() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(vehicleService.addVehicle("John", vehicleDto)).willReturn(vehicleDto);
+        given(vehicleService.addVehicle(anyString(), any(VehicleDto.class))).willReturn(vehicleDto);
 
         mockMvc.perform(post("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +140,7 @@ public class VehicleControllerTests {
         given(securityUtil.getSessionUser()).willReturn("John");
         given(bindingResult.hasErrors()).willReturn(true);
         given(bindingResult.getAllErrors()).willReturn(List.of(new ObjectError("licensePlate", "License plate is required")));
-        given(vehicleService.addVehicle("John", vehicleDto)).willReturn(vehicleDto);
+        given(vehicleService.addVehicle(anyString(), any(VehicleDto.class))).willReturn(vehicleDto);
 
         mockMvc.perform(post("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -152,7 +152,7 @@ public class VehicleControllerTests {
     @Test
     void givenLoggedInUser_whenDeleteVehicle_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(vehicleService.deleteVehicle("John", vehicleDto.getLicensePlate())).willReturn(true);
+        given(vehicleService.deleteVehicle(anyString(), anyString())).willReturn(true);
 
         mockMvc.perform(delete("/api/vehicle")
                         .param("licensePlate", vehicleDto.getLicensePlate()))
@@ -163,7 +163,7 @@ public class VehicleControllerTests {
     @Test
     void givenLoggedInUserAndInvalidVehicle_whenDeleteVehicle_thenReturnNotFound() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(vehicleService.deleteVehicle("John", "9999")).willReturn(false);
+        given(vehicleService.deleteVehicle(anyString(), anyString())).willReturn(false);
 
         mockMvc.perform(delete("/api/vehicle")
                         .param("licensePlate", "9999"))

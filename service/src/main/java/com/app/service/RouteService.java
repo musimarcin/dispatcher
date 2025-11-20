@@ -1,7 +1,6 @@
 package com.app.service;
 
 import com.app.dto.RouteDto;
-import com.app.dto.RoutesDto;
 import com.app.events.EventType;
 import com.app.events.RouteEvent;
 import com.app.model.Route;
@@ -13,21 +12,15 @@ import com.app.repository.VehicleRepo;
 import com.app.specifications.RouteSpecifications;
 import com.app.converters.RouteDtoToRoute;
 import com.app.converters.RouteToRouteDto;
-import io.mongock.utils.StringUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -39,14 +32,16 @@ public class RouteService {
     private final ApplicationEventPublisher eventPublisher;
     private final RouteToRouteDto routeConverter;
     private final RouteDtoToRoute routeDtoConverter;
+    private final RouteSpecifications routeSpecifications;
 
-    public RouteService(RouteRepo routeRepo, UserRepo userRepo, VehicleRepo vehicleRepo, ApplicationEventPublisher eventPublisher, RouteToRouteDto routeConverter, RouteDtoToRoute routeDtoConverter) {
+    public RouteService(RouteRepo routeRepo, UserRepo userRepo, VehicleRepo vehicleRepo, ApplicationEventPublisher eventPublisher, RouteToRouteDto routeConverter, RouteDtoToRoute routeDtoConverter, RouteSpecifications routeSpecifications) {
         this.routeRepo = routeRepo;
         this.userRepo = userRepo;
         this.vehicleRepo = vehicleRepo;
         this.eventPublisher = eventPublisher;
         this.routeConverter = routeConverter;
         this.routeDtoConverter = routeDtoConverter;
+        this.routeSpecifications = routeSpecifications;
     }
 
     private Pageable getPage(Integer page) {
@@ -55,112 +50,42 @@ public class RouteService {
     }
 
     public Page<RouteDto> getAllRoutes(String username, Integer page) {
-        if (userRepo.findByUsername(username).isEmpty()) return null;
-        UserEntity user = userRepo.findByUsername(username).get();
-        Page<Route> routePage = routeRepo.findByUserId(user.getId(), getPage(page));
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return Page.empty();
+        Page<Route> routePage = routeRepo.findByUserId(user.get().getId(), getPage(page));
         return routePage.map(routeConverter::convert);
     }
 
     public Page<RouteDto> getVehicleRoutes(String username, String licensePlate, Integer page) {
-        if (userRepo.findByUsername(username).isEmpty()) return null;
-        UserEntity user = userRepo.findByUsername(username).get();
-        if (vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).isEmpty()) return new PageImpl<>(List.of());
-        Vehicle vehicle = vehicleRepo.findByUserIdAndLicensePlate(user.getId(), licensePlate).get();
-        Page<Route> routePage = routeRepo.findByVehicle(vehicle, getPage(page));
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return Page.empty();
+        Optional<Vehicle> vehicle = vehicleRepo.findByUserIdAndLicensePlate(user.get().getId(), licensePlate);
+        if (vehicle.isEmpty()) return Page.empty();
+        Page<Route> routePage = routeRepo.findByVehicle(vehicle.get(), getPage(page));
         return routePage.map(routeConverter::convert);
     }
 
-    private Specification<Route> getSpecification(Map<String, String> searchCriteria) {
-        Specification<Route> specification = Specification.where(null);
-
-        if (StringUtils.hasText(searchCriteria.get("status")))
-            specification = specification.and(RouteSpecifications.containsStatus(searchCriteria.get("status")));
-
-        if (StringUtils.hasText(searchCriteria.get("licensePlate")))
-            specification = specification.and(RouteSpecifications.containsLicensePlate(searchCriteria.get("licensePlate")));
-
-        if (StringUtils.hasText(searchCriteria.get("distanceFrom"))) {
-            BigDecimal distanceFrom = new BigDecimal(searchCriteria.get("distanceFrom"));
-            specification = specification.and(RouteSpecifications.distanceGreaterThan(distanceFrom));
-        } else specification = specification.and(RouteSpecifications.distanceGreaterThan(BigDecimal.ZERO));
-
-        if (StringUtils.hasText(searchCriteria.get("distanceTo"))) {
-            BigDecimal distanceTo = new BigDecimal(searchCriteria.get("distanceTo"));
-            specification = specification.and(RouteSpecifications.distanceLessThan(distanceTo));
-        } else specification = specification.and(RouteSpecifications.distanceLessThan(BigDecimal.valueOf(2000000)));
-
-        if (StringUtils.hasText(searchCriteria.get("estimatedTimeFrom"))) {
-            Integer estimatedTimeFrom = Integer.valueOf(searchCriteria.get("estimatedTimeFrom"));
-            specification = specification.and(RouteSpecifications.estimatedTimeGreaterThan(estimatedTimeFrom));
-        } else specification = specification.and(RouteSpecifications.estimatedTimeGreaterThan(0));
-
-        if (StringUtils.hasText(searchCriteria.get("estimatedTimeTo"))) {
-            Integer estimatedTimeTo = Integer.valueOf(searchCriteria.get("estimatedTimeTo"));
-            specification = specification.and(RouteSpecifications.estimatedTimeLessThan(estimatedTimeTo));
-        } else specification = specification.and(RouteSpecifications.estimatedTimeLessThan(Integer.MAX_VALUE));
-
-        if (StringUtils.hasText(searchCriteria.get("startTimeFrom"))) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            LocalDateTime localDateTime = LocalDateTime.parse(searchCriteria.get("startTimeFrom"), formatter);
-            Date startTimeFrom = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-            specification = specification.and(RouteSpecifications.startTimeGreaterThan(startTimeFrom));
-        } else specification = specification.and(RouteSpecifications.startTimeGreaterThan(new Date(0)));
-
-        if (StringUtils.hasText(searchCriteria.get("startTimeTo"))) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            LocalDateTime localDateTime = LocalDateTime.parse(searchCriteria.get("startTimeTo"), formatter);
-            Date startTimeTo = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-            specification = specification.and(RouteSpecifications.startTimeLessThan(startTimeTo));
-        } else specification = specification.and(RouteSpecifications.startTimeLessThan(Date.from(Instant.now())));
-
-        if (StringUtils.hasText(searchCriteria.get("endTimeFrom"))) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            LocalDateTime localDateTime = LocalDateTime.parse(searchCriteria.get("startTimeFrom"), formatter);
-            Date endTimeFrom = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-            specification = specification.and(RouteSpecifications.endTimeGreaterThan(endTimeFrom));
-        } else specification = specification.and(RouteSpecifications.endTimeGreaterThan(new Date(0)));
-
-        if (StringUtils.hasText(searchCriteria.get("endTimeTo"))) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-            LocalDateTime localDateTime = LocalDateTime.parse(searchCriteria.get("startTimeTo"), formatter);
-            Date endTimeTo = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-            specification = specification.and(RouteSpecifications.endTimeLessThan(endTimeTo));
-        } else specification = specification.and(RouteSpecifications.endTimeLessThan(Date.from(Instant.now())));
-
-        if (StringUtils.hasText(searchCriteria.get("createdAtFrom"))) {
-            Instant createdAtFrom = Instant.parse(searchCriteria.get("createdAtFrom"));
-            specification = specification.and(RouteSpecifications.createdAtGreaterThan(createdAtFrom));
-        } else specification = specification.and(RouteSpecifications.createdAtGreaterThan(Instant.EPOCH));
-
-        if (StringUtils.hasText(searchCriteria.get("createdAtTo"))) {
-            Instant createdAtTo = Instant.parse(searchCriteria.get("createdAtTo"));
-            specification = specification.and(RouteSpecifications.createdAtLessThan(createdAtTo));
-        } else specification = specification.and(RouteSpecifications.createdAtLessThan(Instant.now()));
-
-        return specification;
-    }
-
     public Page<RouteDto> searchRoute(String username, Integer page, Map<String, String> searchCriteria) {
-        if (userRepo.findByUsername(username).isEmpty()) return null;
-        UserEntity user = userRepo.findByUsername(username).get();
-        Specification<Route> specification = getSpecification(searchCriteria);
-        specification = specification.and(RouteSpecifications.containsUserId(user.getId()));
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return Page.empty();
+        Specification<Route> specification = routeSpecifications.build(searchCriteria, user.get().getId());
         Page<Route> routePage = routeRepo.findAll(specification, getPage(page));
+        if (routePage.isEmpty()) return Page.empty();
         return routePage.map(routeConverter::convert);
     }
 
     @Transactional
     public RouteDto addRoute(String username, RouteDto routeDto) {
-        if (userRepo.findByUsername(username).isEmpty()) return null;
-        UserEntity user = userRepo.findByUsername(username).get();
-        routeDto.setUserId(user.getId());
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return null;
+        routeDto.setUserId(user.get().getId());
         routeDto.setCreatedAt(Instant.now());
         Route route = routeDtoConverter.convert(routeDto);
         routeRepo.save(route);
         RouteEvent routeEvent = new RouteEvent(
                 EventType.CREATED,
                 route,
-                user.getId(),
+                user.get().getId(),
                 Instant.now()
         );
         eventPublisher.publishEvent(routeEvent);
@@ -169,14 +94,15 @@ public class RouteService {
 
     @Transactional
     public boolean deleteRoute(String username, Long id) {
-        if (userRepo.findByUsername(username).isEmpty()) return false;
-        if (routeRepo.findById(id).isEmpty()) return false;
-        Route route = routeRepo.findById(id).get();
-        routeRepo.delete(route);
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return false;
+        Optional<Route> route = routeRepo.findById(id);
+        if (route.isEmpty()) return false;
+        routeRepo.delete(route.get());
         RouteEvent routeEvent = new RouteEvent(
-                EventType.CREATED,
-                route,
-                userRepo.findByUsername(username).get().getId(),
+                EventType.DELETED,
+                route.get(),
+                user.get().getId(),
                 Instant.now()
         );
         eventPublisher.publishEvent(routeEvent);

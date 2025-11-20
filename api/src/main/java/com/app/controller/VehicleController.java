@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -32,7 +31,7 @@ public class VehicleController {
         if (securityUtil.getSessionUser() == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(securityUtil.getSessionUser(), page);
-        if (vehicleDtoPage == null)
+        if (vehicleDtoPage.isEmpty())
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No vehicles found");
         return ResponseEntity.status(HttpStatus.OK).body(new VehiclesDto(vehicleDtoPage));
     }
@@ -43,7 +42,7 @@ public class VehicleController {
         if (securityUtil.getSessionUser() == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
         Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(securityUtil.getSessionUser(), page, searchCriteria);
-        if (vehicleDtoPage == null)
+        if (vehicleDtoPage.isEmpty())
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No vehicles found");
         return ResponseEntity.status(HttpStatus.OK).body(new VehiclesDto(vehicleDtoPage));
     }

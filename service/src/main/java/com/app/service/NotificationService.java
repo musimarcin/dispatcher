@@ -11,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 
 @Service
 public class NotificationService {
@@ -31,19 +33,18 @@ public class NotificationService {
     }
 
     public Page<NotificationDto> getAllNotifications(String username, Integer page) {
-        if (userRepo.findByUsername(username).isEmpty()) return null;
-        UserEntity user = userRepo.findByUsername(username).get();
-        Page<Notification> notificationPage = notificationRepo.findByUserId(user.getId(), getPage(page));
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return Page.empty();
+        Page<Notification> notificationPage = notificationRepo.findByUserId(user.get().getId(), getPage(page));
+        if (notificationPage.isEmpty()) return Page.empty();
         return notificationPage.map(notificationConverter::convert);
     }
 
     public boolean readNotification(Long id) {
-        if (notificationRepo.findById(id).isPresent()) {
-            Notification notification = notificationRepo.findById(id).get();
-            notification.setIsRead(true);
-            notificationRepo.save(notification);
-            return true;
-        }
-        return false;
+        Optional<Notification> notification = notificationRepo.findById(id);
+        if (notification.isEmpty()) return false;
+        notification.get().setIsRead(true);
+        notificationRepo.save(notification.get());
+        return true;
     }
 }

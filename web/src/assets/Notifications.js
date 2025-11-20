@@ -20,7 +20,7 @@ function Notifications({showToast}) {
     }, [notificationPage]);
 
     const selectNotification = (notification) => {
-        api.post('/notifications/read', notification);
+        api.post('/notifications', notification);
         setSelectedNotification(notification);
     }
 
