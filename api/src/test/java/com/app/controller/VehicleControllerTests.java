@@ -146,7 +146,7 @@ public class VehicleControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vehicleDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("License plate is required "));
+                .andExpect(jsonPath("$.message").value("License plate is required"));
     }
 
     @Test

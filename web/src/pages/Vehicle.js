@@ -28,7 +28,7 @@ function Vehicle({showToast}) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        await api.post("/vehicles", {
+        await api.post("/vehicle", {
             ...vehicle,
             fuelCapacity: parseFloat(vehicle.fuelCapacity),
             averageConsumption: vehicle.averageConsumption

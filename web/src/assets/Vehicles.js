@@ -9,14 +9,13 @@ function Vehicles({showToast}) {
     const [vehicleTotalPages, setVehicleTotalPages] = useState(0);
 
     useEffect(() => {
-        api
-        .get(`/vehicles?page=${vehiclePage + 1}`)
-        .then((response) => {
-            setVehicles(response.data.vehicleDtoList);
-            setVehicleTotalPages(response.data.totalPages);
+        api.get(`/vehicle?page=${vehiclePage + 1}`
+        ).then((response) => {
+            setVehicles(response.data.body.vehicleDtoList);
+            setVehicleTotalPages(response.data.body.totalPages);
             setSelectedVehicle(null); // reset selection when page changes
         })
-        .catch((err) => showToast(err.response?.data || err.message, "error"));
+        .catch((err) => showToast(err.response?.data.message, "error"));
     }, [vehiclePage]);
 
     return (

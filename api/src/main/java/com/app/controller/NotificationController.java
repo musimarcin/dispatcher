@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/notifications")
 public class NotificationController {
@@ -24,20 +26,20 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<?> getAllNotifications(@RequestParam(name = "page", defaultValue = "1") Integer page) {
         if (securityUtil.getSessionUser() == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         Page<NotificationDto> notificationDtoPage = notificationService.getAllNotifications(securityUtil.getSessionUser(), page);
         if (notificationDtoPage.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Notification not found");
-        return ResponseEntity.status(HttpStatus.OK).body(new NotificationsDto(notificationDtoPage));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "Notification not found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new NotificationsDto(notificationDtoPage)));
     }
 
     @PostMapping
     public ResponseEntity<?> readNotification(@RequestBody NotificationDto notificationDto) {
         if (securityUtil.getSessionUser() == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         if (!notificationService.readNotification(notificationDto.getId()))
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Notification not found");
-        return ResponseEntity.status(HttpStatus.OK).body("Message marked as read");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "Notification not found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Message marked as read"));
     }
 
 }

@@ -22,9 +22,9 @@ function Settings({showToast}) {
         } else {
             api.get("/user/roles")
             .then(response => {
-                setRoles(response.data);
-                localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => showToast(err.response?.data, "error")); //question marks to check if previous part returned null
+                setRoles(response.data.body);
+                localStorage.setItem("roles", JSON.stringify(response.data.body));
+            }).catch(err => showToast("Failed to fetch roles", "error")); //question marks to check if previous part returned null
         }
 
         const storedUserRoles = localStorage.getItem("userRoles");
@@ -76,9 +76,9 @@ function Settings({showToast}) {
         api.put("/user/username",
             username
         ).then(res => {
-            showToast(res.data, "success")
+            showToast(res.data.message, "success")
             setUsername("")
-        }).catch(err => showToast(err.response?.data, "error"));
+        }).catch(err => showToast(err.response?.data.message, "error"));
     }
 
     const changePassword = async (e) => {
@@ -87,9 +87,9 @@ function Settings({showToast}) {
         api.put("/user/password",
             password
         ).then(res => {
-            showToast(res.data, "success")
+            showToast(res.data.message, "success")
             setPassword("")
-        }).catch(err => showToast(err.response?.data, "error"));
+        }).catch(err => showToast(err.response?.data.message, "error"));
     }
     const changeEmail = async (e) => {
         e.preventDefault();
@@ -97,9 +97,9 @@ function Settings({showToast}) {
         api.put("/user/email",
             email
         ).then(res => {
-            showToast(res.data, "success")
+            showToast(res.data.message, "success")
             setEmail("")
-        }).catch(err => showToast(err.response?.data, "error"));
+        }).catch(err => showToast(err.response?.data.message, "error"));
     }
 
     const removeRoles = async (e) => {
@@ -107,13 +107,13 @@ function Settings({showToast}) {
         const rolesWithPrefix = selectedUserRoles.map(role => "ROLE_" + role);
 
         api.delete("/user/roles",
-            roles: rolesWithPrefix
+            { roles: rolesWithPrefix }
         ).then(() => {
             return updateRoles();
         }).then(res => {
             setSelectedUserRoles([]); //refreshes window
-            showToast(res.data);
-        }).catch(err => showToast(err.res?.data, "error"));
+            showToast(res.data.message);
+        }).catch(err => showToast(err.res?.data.message, "error"));
     };
 
     const addRoles = async (e) => {
@@ -121,23 +121,23 @@ function Settings({showToast}) {
         const rolesWithPrefix = selectedAvailableRoles.map(role => "ROLE_" + role);
 
         api.post("/user/roles",
-            roles: rolesWithPrefix
+            { roles: rolesWithPrefix }
         ).then(response => {
             return updateRoles();
         }).then(response => {
             setSelectedAvailableRoles([]); //refreshes window
-            showToast(response.data);
-        }).catch(err => showToast(err.response?.data, "error"));
+            showToast(response.data.message);
+        }).catch(err => showToast(err.response?.data.message, "error"));
     };
 
     const deleteUser = async (e) => {
         await api.delete('/user')
         .then(response => {
-            showToast(response.data, "success");
+            showToast(response.data.message, "success");
             navigate('/login');
             localStorage.clear();
         })
-        .catch(err => showToast(err.response?.data, "error"));
+        .catch(err => showToast(err.response?.data.message, "error"));
     }
 
     return (

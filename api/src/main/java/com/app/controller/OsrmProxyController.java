@@ -19,7 +19,7 @@ public class OsrmProxyController {
     }
 
     @GetMapping("/route/v1/{profile}/**")
-    public ResponseEntity<String> getRoute(
+    public ResponseEntity<?> getRoute(
             HttpServletRequest request,
             @PathVariable String profile,
             @RequestParam Map<String, String> params) {
@@ -31,6 +31,8 @@ public class OsrmProxyController {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
         params.forEach(builder::queryParam);
         ResponseEntity<String> response = restTemplate.getForEntity(builder.toUriString(), String.class);
-        return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+//        if (!response.hasBody())
+//            return ResponseEntity.status(response.getStatusCode()).body(Map.of("message", "Body not found"));
+        return ResponseEntity.status(response.getStatusCode()).body(Map.of("body", response.getBody()));
     }
 }

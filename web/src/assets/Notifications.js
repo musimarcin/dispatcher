@@ -9,18 +9,18 @@ function Notifications({showToast}) {
     const [notificationTotalPages, setNotificationTotalPages] = useState(0);
 
     useEffect(() => {
-        api
-        .get(`/notifications?page=${notificationPage + 1}`)
-        .then((response) => {
-            setNotifications(response.data.notificationDtoList);
-            setNotificationTotalPages(response.data.totalPages);
+        api.get(`/notifications?page=${notificationPage + 1}`
+        ).then((response) => {
+            setNotifications(response.data.body.notificationDtoList);
+            setNotificationTotalPages(response.data.body.totalPages);
             setSelectedNotification(null); // reset selection on page change
         })
-        .catch((err) => showToast(err.response?.data || err.message, "error"));
+        .catch((err) => showToast(err.response?.data.message, "error"));
     }, [notificationPage]);
 
     const selectNotification = (notification) => {
-        api.post('/notifications', notification);
+        api.post('/notifications',
+            notification);
         setSelectedNotification(notification);
     }
 

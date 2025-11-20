@@ -38,13 +38,13 @@ public class UserController {
     public ResponseEntity<?> deleteUser(HttpServletResponse response) {
         String username = securityUtil.getSessionUser();
         if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You must be logged in to delete user");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "You must be logged in to delete user"));
         if (!userService.deleteUser(username))
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
 
         securityUtil.deleteCookie(response);
         securityUtil.clear();
-        return ResponseEntity.status(HttpStatus.OK).body("User deleted successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "User deleted successfully"));
     }
 
     @PutMapping("/username")
@@ -52,12 +52,12 @@ public class UserController {
                                             HttpServletResponse response) {
         String username = securityUtil.getSessionUser();
         if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
 
         boolean changed = userService.changeUsername(username, request.newUsername());
 
         if (!changed)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already taken");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Username already taken"));
 
         UserDetails userDetails = customUserDetailService.loadUserByUsername(request.newUsername());
         Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -66,74 +66,74 @@ public class UserController {
         String newToken = jwtGenerator.generateToken(authentication);
         response.addCookie(securityUtil.getNewCookie(newToken));
 
-        return ResponseEntity.status(HttpStatus.OK).body("Successfully changed username");
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully changed username"));
     }
 
     @PutMapping("/password")
     public ResponseEntity<?> changePassword(@RequestBody @Valid PasswordChangeRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
 
         boolean changed = userService.changePassword(username, request.newPassword());
         if (!changed)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to change password");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to change password"));
 
-        return ResponseEntity.status(HttpStatus.OK).body("Successfully changed password");
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully changed password"));
     }
 
     @PutMapping("/email")
     public ResponseEntity<?> changeEmail(@RequestBody @Valid EmailChangeRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
 
         boolean changed = userService.changeEmail(username, request.newEmail());
         if (!changed)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to change email");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to change email"));
 
-        return ResponseEntity.status(HttpStatus.OK).body("Successfully changed email");
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully changed email"));
     }
 
     @PostMapping("/roles")
     public ResponseEntity<?> addRole(@RequestBody RoleChangeRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not logged in to change user details");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "You are not logged in to change user details"));
 
         if (request.roles().isEmpty())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to get roles");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to get roles"));
 
         if (!userService.addRoles(username, request.roles()))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to add role");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to add role"));
 
         String role = request.roles().toString();
-        return ResponseEntity.status(HttpStatus.OK).body("Successfully added role " + role);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully added role " + role));
     }
 
     @DeleteMapping("/roles")
     public ResponseEntity<?> removeRole(@RequestBody RoleChangeRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You are not logged in to change user details");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "You are not logged in to change user details"));
 
         if (request.roles().isEmpty())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to get roles");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to get roles"));
 
         if (!userService.removeRoles(username, request.roles()))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to remove role");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to remove role"));
 
         String role = request.roles().toString();
-        return ResponseEntity.status(HttpStatus.OK).body("Successfully removed role " + role);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully removed role " + role));
     }
 
     @GetMapping("/roles")
-    public List<String> getAllRoles() {
-        return userService.getAllRoles();
+    public ResponseEntity<?> getAllRoles() {
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", userService.getAllRoles()));
     }
 
     @GetMapping("/roles/user")
-    public ResponseEntity<Set<String>> getUserRoles() {
+    public ResponseEntity<?> getUserRoles() {
         String username = securityUtil.getSessionUser();
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.emptySet());

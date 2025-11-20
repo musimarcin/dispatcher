@@ -194,7 +194,7 @@ public class RouteControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(routeDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Distance cannot be null "));
+                .andExpect(jsonPath("$.message").value("Distance cannot be null"));
     }
 
     @Test

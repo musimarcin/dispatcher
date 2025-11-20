@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -29,45 +28,39 @@ public class VehicleController {
     @GetMapping
     public ResponseEntity<?> getAllVehicles(@RequestParam(name = "page", defaultValue = "1" ) Integer page) {
         if (securityUtil.getSessionUser() == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(securityUtil.getSessionUser(), page);
         if (vehicleDtoPage.isEmpty())
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No vehicles found");
-        return ResponseEntity.status(HttpStatus.OK).body(new VehiclesDto(vehicleDtoPage));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No vehicles found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
     }
 
     @PostMapping("/search")
     public ResponseEntity<?> searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestBody Map<String, String> searchCriteria) {
         if (securityUtil.getSessionUser() == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(securityUtil.getSessionUser(), page, searchCriteria);
         if (vehicleDtoPage.isEmpty())
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No vehicles found");
-        return ResponseEntity.status(HttpStatus.OK).body(new VehiclesDto(vehicleDtoPage));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No vehicles found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
     }
 
     @PostMapping
-    public ResponseEntity<?> addVehicle(@RequestBody @Valid VehicleDto vehicleDto, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            StringBuilder errorMessage = new StringBuilder();
-            bindingResult.getAllErrors().forEach(e ->
-                    errorMessage.append(e.getDefaultMessage()).append(" "));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", errorMessage.toString()));
-        }
+    public ResponseEntity<?> addVehicle(@RequestBody @Valid VehicleDto vehicleDto) {
         VehicleDto created = vehicleService.addVehicle(securityUtil.getSessionUser(), vehicleDto);
         if (created == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("vehicle", created, "message", "Vehicle added successfully"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("body", created, "message", "Vehicle added successfully"));
     }
 
     @DeleteMapping
     public ResponseEntity<?> deleteVehicle(@RequestParam(name = "licensePlate") String licensePlate) {
         if (securityUtil.getSessionUser() == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         if (!vehicleService.deleteVehicle(securityUtil.getSessionUser(), licensePlate))
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
-        return ResponseEntity.status(HttpStatus.OK).body("Vehicle deleted successfully");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Vehicle not found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Vehicle deleted successfully"));
     }
 
 }

@@ -15,10 +15,10 @@ function Login({showToast}) {
             username,
             password
         }).then(response => {
-            showToast(response.data, "success");
+            showToast(response.data.message, "success");
             window.location.reload();
             window.location.href = '/';
-        }).catch(err => showToast(err.response?.data, "error"));
+        }).catch(err => showToast(err.response?.data.message, "error"));
     };
 
     return (

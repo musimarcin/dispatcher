@@ -21,9 +21,9 @@ function Register({showToast}) {
         } else {
             api.get("/user/roles")
             .then(response => {
-                setRoles(response.data);
+                setRoles(response.data.role);
                 localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => showToast(err.response?.data, "error"));
+            }).catch(err => showToast(err.response?.data.message, "error"));
         }
     }, []);
 

@@ -119,8 +119,18 @@ public class AuthControllerTests {
 
     @Test
     void whenLogout_thenReturnOk() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(userDtoJohn.getUsername());
         mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Successfully logged out"));
+    }
+
+    @Test
+    void whenLogout_thenReturnUnauthorized() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(null);
+
+        mockMvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string("Not logged in"));
     }
 }
