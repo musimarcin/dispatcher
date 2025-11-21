@@ -26,14 +26,13 @@ function SearchVehicle({showToast}) {
 
     const handleSearch = async (e) => {
         e.preventDefault();
-        console.log(search)
         api.post(`/vehicle/search?page=${page}`, search)
         .then(res => setVehicles(res.data.body)
         ).catch(err => showToast(err.response?.data.message, "error"));
     };
 
     const removeVehicle = (licensePlate) => {
-        api.delete(`/vehicles?licensePlate=${licensePlate}`)
+        api.delete(`/vehicle?licensePlate=${licensePlate}`)
         .then(res => showToast(res.data.message, "success"))
         .catch(err => showToast(err.response?.data.message, "error"))
     }

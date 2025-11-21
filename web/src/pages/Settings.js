@@ -27,37 +27,30 @@ function Settings({showToast}) {
             }).catch(err => showToast("Failed to fetch roles", "error")); //question marks to check if previous part returned null
         }
 
-        const storedUserRoles = localStorage.getItem("userRoles");
+        api.get("/user/roles/me")
+            .then(response => {
+            console.log(response)
+                setUserRoles(response.data.body);
+                const allRoles = JSON.parse(localStorage.getItem("roles") || "[]");
+                const userRolesData = JSON.parse(userRoles || "[]");
+                const filtered = allRoles.filter(role => !userRolesData.includes(role));
+                setRoles(filtered);
+                setSelectedAvailableRoles([]);
+            }).catch(err => showToast(err.response?.data.message, "error"));
 
-        if (storedUserRoles) {
-            const userRolesData = JSON.parse(storedUserRoles);
-            setUserRoles(userRolesData);
-            //filter out roles
-            const allRoles = JSON.parse(storedRoles);
-            const filtered = allRoles.filter(role => !userRolesData.includes(role));
-            setRoles(filtered);
-        } else {
-            updateRoles()
-                .then(() => { //filter out roles
-                    const allRoles = JSON.parse(localStorage.getItem("roles") || "[]");
-                    const userRolesData = JSON.parse(localStorage.getItem("userRoles") || "[]");
-                    const filtered = allRoles.filter(role => !userRolesData.includes(role));
-                    setRoles(filtered);
-                });
-        }
     }, []);
 
     const updateRoles = () => {
-        return api.get("/user/roles/user")
+        return api.get("/user/roles/me")
             .then(response => {
-                setUserRoles(response.data);
-                localStorage.setItem("userRoles", JSON.stringify(response.data));
-                //filter out roles
+            console.log(response)
+                setUserRoles(response.data.body);
                 const allRoles = JSON.parse(localStorage.getItem("roles") || "[]");
-                const filtered = allRoles.filter(role => !response.data.includes(role));
+                const userRolesData = JSON.parse(userRoles || "[]");
+                const filtered = allRoles.filter(role => !userRolesData.includes(role));
                 setRoles(filtered);
                 setSelectedAvailableRoles([]);
-            }).catch(err => showToast(err.response?.data, "error"));
+            }).catch(err => showToast(err.response?.data.message, "error"));
     };
 
     const handleUserRolesChange = (e) => {
@@ -74,7 +67,7 @@ function Settings({showToast}) {
         e.preventDefault();
 
         api.put("/user/username",
-            username
+            { newUsername: username }
         ).then(res => {
             showToast(res.data.message, "success")
             setUsername("")
@@ -85,7 +78,7 @@ function Settings({showToast}) {
         e.preventDefault();
 
         api.put("/user/password",
-            password
+            { newPassword: password }
         ).then(res => {
             showToast(res.data.message, "success")
             setPassword("")
@@ -95,7 +88,7 @@ function Settings({showToast}) {
         e.preventDefault();
 
         api.put("/user/email",
-            email
+            { newEmail: email }
         ).then(res => {
             showToast(res.data.message, "success")
             setEmail("")
@@ -106,13 +99,13 @@ function Settings({showToast}) {
         e.preventDefault();
         const rolesWithPrefix = selectedUserRoles.map(role => "ROLE_" + role);
 
-        api.delete("/user/roles",
+        api.patch("/user/roles/remove",
             { roles: rolesWithPrefix }
         ).then(() => {
             return updateRoles();
         }).then(res => {
             setSelectedUserRoles([]); //refreshes window
-            showToast(res.data.message);
+            showToast(res.data.message, "success");
         }).catch(err => showToast(err.res?.data.message, "error"));
     };
 
@@ -120,13 +113,13 @@ function Settings({showToast}) {
         e.preventDefault();
         const rolesWithPrefix = selectedAvailableRoles.map(role => "ROLE_" + role);
 
-        api.post("/user/roles",
+        api.patch("/user/roles/add",
             { roles: rolesWithPrefix }
         ).then(response => {
             return updateRoles();
         }).then(response => {
             setSelectedAvailableRoles([]); //refreshes window
-            showToast(response.data.message);
+            showToast(response.data.message, "success");
         }).catch(err => showToast(err.response?.data.message, "error"));
     };
 
@@ -135,7 +128,6 @@ function Settings({showToast}) {
         .then(response => {
             showToast(response.data.message, "success");
             navigate('/login');
-            localStorage.clear();
         })
         .catch(err => showToast(err.response?.data.message, "error"));
     }
@@ -143,7 +135,7 @@ function Settings({showToast}) {
     return (
         <div className="container mt-4">
             <h2 className="mb-4">Settings</h2>
-            <div className="mb-3">
+            <div className="mb-1">
                 <input
                     type="text"
                     className="form-control"
@@ -152,10 +144,10 @@ function Settings({showToast}) {
                     onChange={(e) => setUsername(e.target.value)}
                 />
             </div>
-            <button className="btn btn-primary" onClick={changeUsername}>
+            <button className="btn btn-primary mb-2" onClick={changeUsername}>
                 Change Username
             </button>
-            <div className="mb-3">
+            <div className="mb-1">
                 <input
                     type="password"
                     className="form-control"
@@ -164,10 +156,10 @@ function Settings({showToast}) {
                     onChange={(e) => setPassword(e.target.value)}
                 />
             </div>
-            <button className="btn btn-primary" onClick={changePassword}>
+            <button className="btn btn-primary mb-2" onClick={changePassword}>
                 Change Password
             </button>
-            <div className="mb-3">
+            <div className="mb-1">
                 <input
                     type="email"
                     className="form-control"
@@ -176,7 +168,7 @@ function Settings({showToast}) {
                     onChange={(e) => setEmail(e.target.value)}
                 />
             </div>
-            <button className="btn btn-primary" onClick={changeEmail}>
+            <button className="btn btn-primary mb-2" onClick={changeEmail}>
                 Change Email
             </button>
 

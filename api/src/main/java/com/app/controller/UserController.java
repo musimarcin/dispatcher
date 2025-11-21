@@ -95,7 +95,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully changed email"));
     }
 
-    @PostMapping("/roles")
+    @PatchMapping("/roles/add")
     public ResponseEntity<?> addRole(@RequestBody RoleChangeRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
@@ -111,7 +111,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully added role " + role));
     }
 
-    @DeleteMapping("/roles")
+    @PatchMapping("/roles/remove")
     public ResponseEntity<?> removeRole(@RequestBody RoleChangeRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
@@ -132,15 +132,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", userService.getAllRoles()));
     }
 
-    @GetMapping("/roles/user")
+    @GetMapping("/roles/me")
     public ResponseEntity<?> getUserRoles() {
         String username = securityUtil.getSessionUser();
         if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.emptySet());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("body", Collections.emptySet()));
         if (userService.getUserRoles(username).isEmpty())
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new HashSet<>(Collections.emptySet()));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("body", Collections.emptySet()));
 
-        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserRoles(username));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", userService.getUserRoles(username)));
     }
 
 

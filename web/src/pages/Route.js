@@ -219,7 +219,7 @@ function Route({showToast}) {
             endTime,
             status: "ACTIVE",
             createdAt: new Date(),
-            licensePlate: selectedVehicle.licensePlate,
+            vehicleDto: selectedVehicle,
             waypoints: locations
                 .filter(loc => loc.coords)
                 .map((loc, i) => ({
@@ -241,15 +241,17 @@ function Route({showToast}) {
 
     const removeRoute = (id) => {
         api.delete(`/route?id=${id}`)
-        .then(res => showToast(res.data.message, "success"))
-        .catch(err => showToast(err.response?.data.message, "error"))
+        .then(res => {
+            showToast(res.data.message, "success")
+            setRoutes(prevRoutes => prevRoutes.filter(r => r.id !== id));
+        }).catch(err => showToast(err.response?.data.message, "error"))
     }
 
 
     return (
         <>
             <div className="container mt-4">
-                <h3>Vehicle Dashboard</h3>
+                <h3>Routes</h3>
 
                 <div className="mb-3">
                     <label htmlFor="vehicle" className="form-label">Select Vehicle</label>

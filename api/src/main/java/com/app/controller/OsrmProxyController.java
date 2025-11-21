@@ -31,8 +31,6 @@ public class OsrmProxyController {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
         params.forEach(builder::queryParam);
         ResponseEntity<String> response = restTemplate.getForEntity(builder.toUriString(), String.class);
-//        if (!response.hasBody())
-//            return ResponseEntity.status(response.getStatusCode()).body(Map.of("message", "Body not found"));
-        return ResponseEntity.status(response.getStatusCode()).body(Map.of("body", response.getBody()));
+        return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
     }
 }
