@@ -50,8 +50,8 @@ public class UserControllerTests {
 
     @BeforeEach
     void setUp() {
-        userDtoJohn = UserDto.builder().username("John").password("johnsmith").email("john@johnsmith").roles(new HashSet<>(Set.of("ROLE_DISPATCHER"))).build();
-        userDtoAdam = UserDto.builder().username("Adam").password("adamadam").email("adam@adamadam").roles(new HashSet<>(Set.of("ROLE_DRIVER"))).build();
+        userDtoJohn = UserDto.builder().username("John").password("johnsmith").email("john@johnsmith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
+        userDtoAdam = UserDto.builder().username("Adam").password("adamadam").email("adam@adamadam").roles(new HashSet<>(Set.of("DRIVER"))).build();
     }
 
 
@@ -62,7 +62,7 @@ public class UserControllerTests {
 
         mockMvc.perform(delete("/api/user"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("User deleted successfully"));
+                .andExpect(jsonPath("$.message").value("User deleted successfully"));
     }
 
     @Test
@@ -72,7 +72,7 @@ public class UserControllerTests {
 
         mockMvc.perform(delete("/api/user"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("User not found"));
+                .andExpect(jsonPath("$.message").value("User not found"));
     }
 
     @Test
@@ -81,7 +81,7 @@ public class UserControllerTests {
 
         mockMvc.perform(delete("/api/user"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("You must be logged in to delete user"));
+                .andExpect(jsonPath("$.message").value("You must be logged in to delete user"));
     }
 
     @Test
@@ -104,7 +104,7 @@ public class UserControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"newUsername\":\"Adam\"}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Successfully changed username"));
+                .andExpect(jsonPath("$.message").value("Successfully changed username"));
     }
 
     @Test
@@ -116,7 +116,7 @@ public class UserControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"newUsername\":\"Adam\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Username already taken"));
+                .andExpect(jsonPath("$.message").value("Username already taken"));
     }
 
     @Test
@@ -127,7 +127,7 @@ public class UserControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"newUsername\":\"Adam\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
     @Test
@@ -151,7 +151,7 @@ public class UserControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"newPassword\":\"adamadam\"}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Successfully changed password"));
+                .andExpect(jsonPath("$.message").value("Successfully changed password"));
     }
 
     @Test
@@ -163,7 +163,7 @@ public class UserControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"newPassword\":\"adamadam\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Failed to change password"));
+                .andExpect(jsonPath("$.message").value("Failed to change password"));
     }
 
     @Test
@@ -187,7 +187,7 @@ public class UserControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"newEmail\":\"adam@adamadam\"}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Successfully changed email"));
+                .andExpect(jsonPath("$.message").value("Successfully changed email"));
     }
 
     @Test
@@ -199,7 +199,7 @@ public class UserControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"newEmail\":\"adam@adamadam\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Failed to change email"));
+                .andExpect(jsonPath("$.message").value("Failed to change email"));
     }
 
     @Test
@@ -231,33 +231,33 @@ public class UserControllerTests {
         given(securityUtil.getSessionUser()).willReturn(userDtoJohn.getUsername());
         given(userService.removeRoles(anyString(), anySet())).willReturn(true);
 
-        mockMvc.perform(delete("/api/user/roles")
+        mockMvc.perform(patch("/api/user/roles/remove")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"ROLE_DISPATCHER\"]}"))
+                        .content("{\"roles\": [\"DISPATCHER\"]}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Successfully removed role [ROLE_DISPATCHER]"));
+                .andExpect(jsonPath("$.message").value("Successfully removed role [DISPATCHER]"));
     }
 
     @Test
     void givenInvalidUser_whenRemoveRoles_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
-        mockMvc.perform(delete("/api/user/roles")
+        mockMvc.perform(patch("/api/user/roles/remove")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"ROLE_DISPATCHER\"]}"))
+                        .content("{\"roles\": [\"DISPATCHER\"]}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("You are not logged in to change user details"));
+                .andExpect(jsonPath("$.message").value("You are not logged in to change user details"));
     }
 
     @Test
     void givenInvalidUser_whenAddRoles_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
-        mockMvc.perform(post("/api/user/roles")
+        mockMvc.perform(patch("/api/user/roles/add")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"roles\": [\"ROLE_DRIVER\"]}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("You are not logged in to change user details"));
+                .andExpect(jsonPath("$.message").value("You are not logged in to change user details"));
     }
 
     @Test
@@ -265,11 +265,11 @@ public class UserControllerTests {
         given(securityUtil.getSessionUser()).willReturn(userDtoJohn.getUsername());
         given(userService.addRoles(anyString(), anySet())).willReturn(true);
 
-        mockMvc.perform(post("/api/user/roles")
+        mockMvc.perform(patch("/api/user/roles/add")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"ROLE_DRIVER\"]}"))
+                        .content("{\"roles\": [\"DRIVER\"]}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Successfully added role [ROLE_DRIVER]"));
+                .andExpect(jsonPath("$.message").value("Successfully added role [DRIVER]"));
     }
 
     @Test
@@ -277,11 +277,11 @@ public class UserControllerTests {
         given(securityUtil.getSessionUser()).willReturn(userDtoJohn.getUsername());
         given(userService.addRoles(anyString(), anySet())).willReturn(false);
 
-        mockMvc.perform(post("/api/user/roles")
+        mockMvc.perform(patch("/api/user/roles/add")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"ROLE_DRIVER\"]}"))
+                        .content("{\"roles\": [\"DRIVER\"]}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Failed to add role"));
+                .andExpect(jsonPath("$.message").value("Failed to add role"));
     }
 
 }

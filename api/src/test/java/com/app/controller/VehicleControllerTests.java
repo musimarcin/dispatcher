@@ -74,7 +74,7 @@ public class VehicleControllerTests {
         mockMvc.perform(get("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.vehicleDtoList[0].licensePlate").value("1234"));
+                .andExpect(jsonPath("$.body.vehicleDtoList[0].licensePlate").value("1234"));
     }
 
     @Test
@@ -84,7 +84,7 @@ public class VehicleControllerTests {
         mockMvc.perform(get("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
     @Test
@@ -96,7 +96,7 @@ public class VehicleControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "1234"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.vehicleDtoList[0].licensePlate").value("1234"));
+                .andExpect(jsonPath("$.body.vehicleDtoList[0].licensePlate").value("1234"));
     }
 
     @Test
@@ -107,7 +107,7 @@ public class VehicleControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "1234"))))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class VehicleControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vehicleDto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.vehicle.licensePlate").value("1234"));
+                .andExpect(jsonPath("$.body.licensePlate").value("1234"));
     }
 
     @Test
@@ -157,7 +157,7 @@ public class VehicleControllerTests {
         mockMvc.perform(delete("/api/vehicle")
                         .param("licensePlate", vehicleDto.getLicensePlate()))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Vehicle deleted successfully"));
+                .andExpect(jsonPath("$.message").value("Vehicle deleted successfully"));
     }
 
     @Test
@@ -168,7 +168,7 @@ public class VehicleControllerTests {
         mockMvc.perform(delete("/api/vehicle")
                         .param("licensePlate", "9999"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Vehicle not found"));
+                .andExpect(jsonPath("$.message").value("Vehicle not found"));
     }
 
     @Test
@@ -178,7 +178,7 @@ public class VehicleControllerTests {
         mockMvc.perform(delete("/api/vehicle")
                         .param("licensePlate", "9999"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
 }

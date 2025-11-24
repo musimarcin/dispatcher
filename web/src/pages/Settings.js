@@ -24,34 +24,17 @@ function Settings({showToast}) {
             .then(response => {
                 setRoles(response.data.body);
                 localStorage.setItem("roles", JSON.stringify(response.data.body));
-            }).catch(err => showToast("Failed to fetch roles", "error")); //question marks to check if previous part returned null
+            }).catch(err => showToast("Failed to fetch roles", "error"));
         }
 
         api.get("/user/roles/me")
             .then(response => {
-            console.log(response)
-                setUserRoles(response.data.body);
-                const allRoles = JSON.parse(localStorage.getItem("roles") || "[]");
-                const userRolesData = JSON.parse(userRoles || "[]");
-                const filtered = allRoles.filter(role => !userRolesData.includes(role));
+                setUserRoles(response.data.body || []);
+                const filtered = roles.filter(role => !userRoles.includes(role));
                 setRoles(filtered);
                 setSelectedAvailableRoles([]);
-            }).catch(err => showToast(err.response?.data.message, "error"));
-
+            }).catch(err => showToast("Failed to fetch roles", "error"));
     }, []);
-
-    const updateRoles = () => {
-        return api.get("/user/roles/me")
-            .then(response => {
-            console.log(response)
-                setUserRoles(response.data.body);
-                const allRoles = JSON.parse(localStorage.getItem("roles") || "[]");
-                const userRolesData = JSON.parse(userRoles || "[]");
-                const filtered = allRoles.filter(role => !userRolesData.includes(role));
-                setRoles(filtered);
-                setSelectedAvailableRoles([]);
-            }).catch(err => showToast(err.response?.data.message, "error"));
-    };
 
     const handleUserRolesChange = (e) => {
         const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
@@ -97,13 +80,13 @@ function Settings({showToast}) {
 
     const removeRoles = async (e) => {
         e.preventDefault();
-        const rolesWithPrefix = selectedUserRoles.map(role => "ROLE_" + role);
 
         api.patch("/user/roles/remove",
-            { roles: rolesWithPrefix }
-        ).then(() => {
-            return updateRoles();
-        }).then(res => {
+            { roles: selectedUserRoles }
+        ).then(res => {
+            const filtered = userRoles.filter(role => !selectedUserRoles.includes(role))
+            setUserRoles(filtered)
+            setRoles(roles.concat(selectedUserRoles));
             setSelectedUserRoles([]); //refreshes window
             showToast(res.data.message, "success");
         }).catch(err => showToast(err.res?.data.message, "error"));
@@ -111,13 +94,13 @@ function Settings({showToast}) {
 
     const addRoles = async (e) => {
         e.preventDefault();
-        const rolesWithPrefix = selectedAvailableRoles.map(role => "ROLE_" + role);
 
         api.patch("/user/roles/add",
-            { roles: rolesWithPrefix }
+            { roles: selectedAvailableRoles }
         ).then(response => {
-            return updateRoles();
-        }).then(response => {
+            setUserRoles(userRoles.concat(selectedAvailableRoles))
+            const filtered = roles.filter(role => !selectedAvailableRoles.includes(role))
+            setRoles(filtered);
             setSelectedAvailableRoles([]); //refreshes window
             showToast(response.data.message, "success");
         }).catch(err => showToast(err.response?.data.message, "error"));

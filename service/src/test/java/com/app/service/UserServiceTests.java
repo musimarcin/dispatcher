@@ -43,8 +43,8 @@ public class UserServiceTests {
 
     @BeforeEach
     void setUp() {
-        userDtoJohn = UserDto.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("ROLE_DISPATCHER"))).build();
-        userDtoAdam = UserDto.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("ROLE_DRIVER"))).build();
+        userDtoJohn = UserDto.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
+        userDtoAdam = UserDto.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("DRIVER"))).build();
         userAdam = UserEntity.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of(Role.ROLE_DRIVER))).build();
         userJohn = UserEntity.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of(Role.ROLE_DISPATCHER))).build();
     }

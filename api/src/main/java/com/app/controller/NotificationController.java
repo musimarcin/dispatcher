@@ -38,7 +38,7 @@ public class NotificationController {
         if (securityUtil.getSessionUser() == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         if (!notificationService.readNotification(notificationDto.getId()))
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "Notification not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Notification not found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Message marked as read"));
     }
 

@@ -54,7 +54,7 @@ public class RouteController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         Page<RouteDto> routeDtoPage = routeService.searchRoute(securityUtil.getSessionUser(), page, searchCriteria);
         if (routeDtoPage.isEmpty())
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No routes found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "No routes found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new RoutesDto(routeDtoPage)));
     }
 

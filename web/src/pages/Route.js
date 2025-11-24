@@ -296,7 +296,7 @@ function Route({showToast}) {
                                         <td>{through}</td>
                                         <td>{lastWaypoint}</td>
                                         <td>{r.distance}</td>
-                                        <td>{(r.estimatedTime / 60)}</td>
+                                        <td>{(r.estimatedTime / 60).toFixed(2)}</td>
                                         <td>{new Date(r.createdAt).toLocaleString("pl-PL")}</td>
                                         <td>
                                             <button className="btn btn-danger mt-2" onClick={() => removeRoute(r.id)}>

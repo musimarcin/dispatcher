@@ -87,6 +87,7 @@ public class UserService {
 
         int changes = 0;
         Set<Role> roles = newRoles.stream()
+                .map(role -> "ROLE_" + role)
                 .map(Role::valueOf)
                 .collect(Collectors.toSet());
         for (Role r : roles) {
@@ -104,6 +105,7 @@ public class UserService {
         if (user.isEmpty()) return false;
 
         Set<Role> roles = newRoles.stream()
+                .map(role -> "ROLE_" + role)
                 .map(Role::valueOf)
                 .collect(Collectors.toSet());
         int changes = 0;

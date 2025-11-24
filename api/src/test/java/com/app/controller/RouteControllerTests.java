@@ -93,7 +93,7 @@ public class RouteControllerTests {
         mockMvc.perform(get("/api/route")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
     @Test
@@ -105,9 +105,9 @@ public class RouteControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("licensePlate", "1234"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.routeDtoList[0].distance").value("200"))
-                .andExpect(jsonPath("$.routeDtoList[0].estimatedTime").value("30"))
-                .andExpect(jsonPath("$.routeDtoList[0].userId").value("2"));
+                .andExpect(jsonPath("$.body.routeDtoList[0].distance").value("200"))
+                .andExpect(jsonPath("$.body.routeDtoList[0].estimatedTime").value("30"))
+                .andExpect(jsonPath("$.body.routeDtoList[0].userId").value("2"));
     }
 
     @Test
@@ -118,8 +118,8 @@ public class RouteControllerTests {
         mockMvc.perform(get("/api/route/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("licensePlate", "9999"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("No routes found"));
+                .andExpect(status().isNoContent())
+                .andExpect(jsonPath("$.message").value("No routes found"));
     }
 
     @Test
@@ -129,7 +129,7 @@ public class RouteControllerTests {
         mockMvc.perform(get("/api/route/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
     @Test
@@ -141,9 +141,9 @@ public class RouteControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "1234"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.routeDtoList[0].distance").value("200"))
-                .andExpect(jsonPath("$.routeDtoList[0].estimatedTime").value("30"))
-                .andExpect(jsonPath("$.routeDtoList[0].userId").value("2"));
+                .andExpect(jsonPath("$.body.routeDtoList[0].distance").value("200"))
+                .andExpect(jsonPath("$.body.routeDtoList[0].estimatedTime").value("30"))
+                .andExpect(jsonPath("$.body.routeDtoList[0].userId").value("2"));
     }
 
     @Test
@@ -155,7 +155,7 @@ public class RouteControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "9999"))))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("No routes found"));
+                .andExpect(jsonPath("$.message").value("No routes found"));
     }
 
     @Test
@@ -165,7 +165,7 @@ public class RouteControllerTests {
         mockMvc.perform(get("/api/route/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
     @Test
@@ -178,8 +178,8 @@ public class RouteControllerTests {
                         .content(objectMapper.writeValueAsString(routeDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("Route added successfully"))
-                .andExpect(jsonPath("$.route.distance").value(200))
-                .andExpect(jsonPath("$.route.estimatedTime").value(30));
+                .andExpect(jsonPath("$.body.distance").value(200))
+                .andExpect(jsonPath("$.body.estimatedTime").value(30));
     }
 
     @Test
@@ -205,7 +205,7 @@ public class RouteControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(routeDto)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
     @Test
@@ -217,7 +217,7 @@ public class RouteControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Route deleted successfully"));
+                .andExpect(jsonPath("$.message").value("Route deleted successfully"));
     }
 
     @Test
@@ -229,7 +229,7 @@ public class RouteControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("id", "2"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Route not found"));
+                .andExpect(jsonPath("$.message").value("Route not found"));
     }
 
     @Test
@@ -240,7 +240,7 @@ public class RouteControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("id", "1"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
 }

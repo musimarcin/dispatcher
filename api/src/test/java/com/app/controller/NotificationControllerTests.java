@@ -64,9 +64,9 @@ public class NotificationControllerTests {
         mockMvc.perform(get("/api/notifications")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.notificationDtoList[0].message").value("test"))
-                .andExpect(jsonPath("$.notificationDtoList[0].isRead").value(false))
-                .andExpect(jsonPath("$.notificationDtoList[0].userId").value(2));
+                .andExpect(jsonPath("$.body.notificationDtoList[0].message").value("test"))
+                .andExpect(jsonPath("$.body.notificationDtoList[0].isRead").value(false))
+                .andExpect(jsonPath("$.body.notificationDtoList[0].userId").value(2));
     }
 
     @Test
@@ -76,8 +76,8 @@ public class NotificationControllerTests {
 
         mockMvc.perform(get("/api/notifications")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Notification not found"));
+                .andExpect(status().isNoContent())
+                .andExpect(jsonPath("$.message").value("Notification not found"));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class NotificationControllerTests {
         mockMvc.perform(get("/api/notifications")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class NotificationControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(notificationDto)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Message marked as read"));
+                .andExpect(jsonPath("$.message").value("Message marked as read"));
     }
 
     @Test
@@ -112,7 +112,7 @@ public class NotificationControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(notificationDto)))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Notification not found"));
+                .andExpect(jsonPath("$.message").value("Notification not found"));
     }
 
     @Test
@@ -123,6 +123,6 @@ public class NotificationControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(notificationDto)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 }

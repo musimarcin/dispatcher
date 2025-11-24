@@ -57,8 +57,8 @@ public class AuthControllerTests {
 
     @BeforeEach
     void setUp() {
-        userDtoJohn = UserDto.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("ROLE_DISPATCHER"))).build();
-        userDtoAdam = UserDto.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("ROLE_DRIVER"))).build();
+        userDtoJohn = UserDto.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
+        userDtoAdam = UserDto.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("DRIVER"))).build();
     }
 
     @Test
@@ -74,8 +74,8 @@ public class AuthControllerTests {
         // then
         response.andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("User registered successfully"))
-                .andExpect(jsonPath("$.user.username").value("John"))
-                .andExpect(jsonPath("$.user.email").value("john@smith"));
+                .andExpect(jsonPath("$.body.username").value("John"))
+                .andExpect(jsonPath("$.body.email").value("john@smith"));
     }
 
     @Test
@@ -101,7 +101,7 @@ public class AuthControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"John\",\"password\":\"smith\"}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Logged in successfully"))
+                .andExpect(jsonPath("$.message").value("Logged in successfully"))
                 .andExpect(cookie().value("token", "mock-token"));
     }
 
@@ -114,7 +114,7 @@ public class AuthControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"John\",\"password\":\"smith\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Invalid credentials"));
+                .andExpect(jsonPath("$.message").value("Invalid credentials"));
     }
 
     @Test
@@ -122,7 +122,7 @@ public class AuthControllerTests {
         given(securityUtil.getSessionUser()).willReturn(userDtoJohn.getUsername());
         mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Successfully logged out"));
+                .andExpect(jsonPath("$.message").value("Successfully logged out"));
     }
 
     @Test
@@ -131,6 +131,6 @@ public class AuthControllerTests {
 
         mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string("Not logged in"));
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 }
