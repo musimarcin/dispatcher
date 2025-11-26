@@ -19,6 +19,7 @@ public class VehicleToVehicleDto implements Converter<Vehicle, VehicleDto> {
                 source.getFuelCapacity(),
                 source.getAverageConsumption(),
                 source.getMileage(),
+                source.getRouteRecords(),
                 source.getLastMaintenance(),
                 source.getCreatedAt(),
                 source.getUserId()

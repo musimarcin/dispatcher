@@ -19,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -70,6 +71,8 @@ public class VehicleService {
         if (user.isEmpty()) return null;
         vehicleDto.setUserId(user.get().getId());
         vehicleDto.setCreatedAt(Instant.now());
+        vehicleDto.setRouteRecords(0);
+        if (vehicleDto.getAverageConsumption() == null) vehicleDto.setAverageConsumption(BigDecimal.ZERO);
         Vehicle vehicle = vehicleDtoConverter.convert(vehicleDto);
         vehicleRepo.save(vehicle);
         VehicleEvent vehicleEvent = new VehicleEvent(
@@ -100,11 +103,18 @@ public class VehicleService {
     }
 
     @Transactional
-    public boolean editVehicle(String username, VehicleDto vehicleDto) {
+    public boolean editVehicleAfterRoute(String username, VehicleDto vehicleDto) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return false;
         Optional<Vehicle> vehicle = vehicleRepo.findById(vehicleDto.getId());
         if (vehicle.isEmpty()) return false;
+        vehicleDto.setRouteRecords(vehicle.get().getRouteRecords() + 1);
+        double dtoConsumption = vehicleDto.getAverageConsumption().doubleValue() / (vehicleDto.getMileage().doubleValue() / 100);
+        double newAvg = (vehicle.get().getAverageConsumption().doubleValue()
+                * vehicle.get().getRouteRecords() + dtoConsumption) / (vehicleDto.getRouteRecords());
+        BigDecimal consumption = new BigDecimal(newAvg);
+        vehicleDto.setAverageConsumption(consumption);
+        vehicleDto.setMileage(vehicle.get().getMileage() + vehicleDto.getMileage());
         vehicleMapper.update(vehicle.get(), vehicleDto);
         vehicleRepo.save(vehicle.get());
         return true;

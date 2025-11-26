@@ -33,6 +33,7 @@ public class Vehicle {
     private BigDecimal averageConsumption;
 
     private Integer mileage;
+    private Integer routeRecords;
     private Date lastMaintenance;
     private Instant createdAt;
     private Long userId;

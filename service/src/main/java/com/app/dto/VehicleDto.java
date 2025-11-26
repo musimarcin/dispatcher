@@ -32,6 +32,7 @@ public class VehicleDto {
     @NotNull(message = "Mileage is required")
     @Min(value = 0, message = "Mileage incorrect")
     private Integer mileage;
+    private Integer routeRecords;
     private Date lastMaintenance;
     private Instant createdAt;
     private Long userId;

@@ -23,16 +23,19 @@ public class RouteMapper {
         if (routeDto.getEndTime() != null) route.setEndTime(routeDto.getEndTime());
         if (routeDto.getStatus() != null) route.setStatus(routeDto.getStatus());
         if (routeDto.getVehicleDto() != null) route.setVehicle(converter.convert(routeDto.getVehicleDto()));
-        List<RoutePoint> waypoints = routeDto.getWaypoints().stream()
-                .map(w -> {
-                    RoutePoint routePoint = new RoutePoint();
-                    routePoint.setName(w.getName());
-                    routePoint.setLatitude(w.getLatitude());
-                    routePoint.setLongitude(w.getLongitude());
-                    routePoint.setSequence(w.getSequence());
-                    routePoint.setRoute(route);
-                    return routePoint;
-                }).toList();
-        if (routeDto.getWaypoints() != null) route.setWaypoints(waypoints);
+        if (routeDto.getWaypoints() != null) {
+            List<RoutePoint> waypoints = routeDto.getWaypoints().stream()
+                    .map(w -> {
+                        RoutePoint routePoint = new RoutePoint();
+                        routePoint.setName(w.getName());
+                        routePoint.setLatitude(w.getLatitude());
+                        routePoint.setLongitude(w.getLongitude());
+                        routePoint.setSequence(w.getSequence());
+                        routePoint.setRoute(route);
+                        return routePoint;
+                    }).toList();
+
+            if (routeDto.getWaypoints() != null) route.setWaypoints(waypoints);
+        }
     }
 }

@@ -26,13 +26,11 @@ public class GlobalExceptionHandler {
         StringBuilder errors = new StringBuilder();
         ex.getBindingResult().getAllErrors()
                 .forEach(e -> errors.append(e.getDefaultMessage()).append(" "));
-        return ResponseEntity.badRequest().body(Map.of("message", errors.toString().trim()));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", errors.toString().trim()));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDuplicateKey(DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                Map.of("message", "Duplicate value violates unique constraint")
-        );
+    public ResponseEntity<?> handleDuplicateKey(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", ex.getMessage()));
     }
 }

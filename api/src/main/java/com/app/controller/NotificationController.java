@@ -25,9 +25,10 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<?> getAllNotifications(@RequestParam(name = "page", defaultValue = "1") Integer page) {
-        if (securityUtil.getSessionUser() == null)
+        String username = securityUtil.getSessionUser();
+        if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        Page<NotificationDto> notificationDtoPage = notificationService.getAllNotifications(securityUtil.getSessionUser(), page);
+        Page<NotificationDto> notificationDtoPage = notificationService.getAllNotifications(username, page);
         if (notificationDtoPage.isEmpty())
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Notification not found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new NotificationsDto(notificationDtoPage)));

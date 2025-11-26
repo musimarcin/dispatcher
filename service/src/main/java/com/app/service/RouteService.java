@@ -4,6 +4,7 @@ import com.app.dto.RouteDto;
 import com.app.events.EventType;
 import com.app.events.RouteEvent;
 import com.app.model.Route;
+import com.app.model.RouteStatus;
 import com.app.model.UserEntity;
 import com.app.model.Vehicle;
 import com.app.repository.RouteRepo;
@@ -11,6 +12,7 @@ import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
 import com.app.specifications.RouteSpecifications;
 import com.app.utils.RouteDtoToRoute;
+import com.app.utils.RouteMapper;
 import com.app.utils.RouteToRouteDto;
 import jakarta.transaction.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,8 +35,9 @@ public class RouteService {
     private final RouteToRouteDto routeConverter;
     private final RouteDtoToRoute routeDtoConverter;
     private final RouteSpecifications routeSpecifications;
+    private final RouteMapper routeMapper;
 
-    public RouteService(RouteRepo routeRepo, UserRepo userRepo, VehicleRepo vehicleRepo, ApplicationEventPublisher eventPublisher, RouteToRouteDto routeConverter, RouteDtoToRoute routeDtoConverter, RouteSpecifications routeSpecifications) {
+    public RouteService(RouteRepo routeRepo, UserRepo userRepo, VehicleRepo vehicleRepo, ApplicationEventPublisher eventPublisher, RouteToRouteDto routeConverter, RouteDtoToRoute routeDtoConverter, RouteSpecifications routeSpecifications, RouteMapper routeMapper) {
         this.routeRepo = routeRepo;
         this.userRepo = userRepo;
         this.vehicleRepo = vehicleRepo;
@@ -42,6 +45,7 @@ public class RouteService {
         this.routeConverter = routeConverter;
         this.routeDtoConverter = routeDtoConverter;
         this.routeSpecifications = routeSpecifications;
+        this.routeMapper = routeMapper;
     }
 
     private Pageable getPage(Integer page) {
@@ -80,6 +84,7 @@ public class RouteService {
         if (user.isEmpty()) return null;
         routeDto.setUserId(user.get().getId());
         routeDto.setCreatedAt(Instant.now());
+        routeDto.setStatus(RouteStatus.PLANNED);
         Route route = routeDtoConverter.convert(routeDto);
         routeRepo.save(route);
         RouteEvent routeEvent = new RouteEvent(
@@ -106,6 +111,17 @@ public class RouteService {
                 Instant.now()
         );
         eventPublisher.publishEvent(routeEvent);
+        return true;
+    }
+
+    @Transactional
+    public boolean editRoute(String username, RouteDto routeDto) {
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return false;
+        Optional<Route> route = routeRepo.findById(routeDto.getId());
+        if (route.isEmpty()) return false;
+        routeMapper.update(route.get(), routeDto);
+        routeRepo.save(route.get());
         return true;
     }
 }

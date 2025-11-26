@@ -27,9 +27,10 @@ public class VehicleController {
 
     @GetMapping
     public ResponseEntity<?> getAllVehicles(@RequestParam(name = "page", defaultValue = "1" ) Integer page) {
-        if (securityUtil.getSessionUser() == null)
+        String username = securityUtil.getSessionUser();
+        if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(securityUtil.getSessionUser(), page);
+        Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(username, page);
         if (vehicleDtoPage.isEmpty())
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No vehicles found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
@@ -38,9 +39,10 @@ public class VehicleController {
     @PostMapping("/search")
     public ResponseEntity<?> searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestBody Map<String, String> searchCriteria) {
-        if (securityUtil.getSessionUser() == null)
+        String username = securityUtil.getSessionUser();
+        if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(securityUtil.getSessionUser(), page, searchCriteria);
+        Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(username, page, searchCriteria);
         if (vehicleDtoPage.isEmpty())
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No vehicles found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
@@ -56,18 +58,20 @@ public class VehicleController {
 
     @DeleteMapping
     public ResponseEntity<?> deleteVehicle(@RequestParam(name = "licensePlate") String licensePlate) {
-        if (securityUtil.getSessionUser() == null)
+        String username = securityUtil.getSessionUser();
+        if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        if (!vehicleService.deleteVehicle(securityUtil.getSessionUser(), licensePlate))
+        if (!vehicleService.deleteVehicle(username, licensePlate))
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Vehicle not found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Vehicle deleted successfully"));
     }
 
-    @PutMapping
-    public ResponseEntity<?> editVehicle(@RequestBody VehicleDto vehicleDto) {
-        if (securityUtil.getSessionUser() == null)
+    @PutMapping("/route")
+    public ResponseEntity<?> editVehicleAfterRoute(@RequestBody VehicleDto vehicleDto) {
+        String username = securityUtil.getSessionUser();
+        if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        if (!vehicleService.editVehicle(securityUtil.getSessionUser(), vehicleDto))
+        if (!vehicleService.editVehicleAfterRoute(username, vehicleDto))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Unsuccessful vehicle update"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully updated vehicle"));
     }
