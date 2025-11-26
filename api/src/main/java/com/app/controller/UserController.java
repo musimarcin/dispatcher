@@ -138,7 +138,7 @@ public class UserController {
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("body", Collections.emptySet()));
         if (userService.getUserRoles(username).isEmpty())
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("body", Collections.emptySet()));
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", Collections.emptySet()));
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", userService.getUserRoles(username)));
     }

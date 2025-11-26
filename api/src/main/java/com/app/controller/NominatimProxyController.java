@@ -41,7 +41,7 @@ public class NominatimProxyController {
                 List<Map<String, Object>> result = getMaps(json);
                 return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", result));
             } else
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Location not found"));
+                return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Location not found"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
         }
@@ -63,7 +63,7 @@ public class NominatimProxyController {
                 List<Map<String, Object>> result = getMaps(json);
                 return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", result));
             } else
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Location not found"));
+                return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Location not found"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
         }

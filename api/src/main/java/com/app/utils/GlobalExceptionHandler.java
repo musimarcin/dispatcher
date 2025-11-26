@@ -1,6 +1,7 @@
 package com.app.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -26,5 +27,12 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getAllErrors()
                 .forEach(e -> errors.append(e.getDefaultMessage()).append(" "));
         return ResponseEntity.badRequest().body(Map.of("message", errors.toString().trim()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateKey(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of("message", "Duplicate value violates unique constraint")
+        );
     }
 }

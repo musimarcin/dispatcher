@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.checkerframework.common.aliasing.qual.Unique;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -27,7 +28,6 @@ public class VehicleDto {
     @NotNull(message = "Fuel capacity is required")
     @Min(value = 1, message = "Fuel capacity incorrect")
     private BigDecimal fuelCapacity;
-    @Min(value = 1, message = "Average Consumption incorrect")
     private BigDecimal averageConsumption;
     @NotNull(message = "Mileage is required")
     @Min(value = 0, message = "Mileage incorrect")

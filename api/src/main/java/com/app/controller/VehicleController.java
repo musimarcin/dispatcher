@@ -31,7 +31,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(securityUtil.getSessionUser(), page);
         if (vehicleDtoPage.isEmpty())
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No vehicles found"));
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No vehicles found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
     }
 
@@ -42,7 +42,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         Page<VehicleDto> vehicleDtoPage = vehicleService.searchVehicles(securityUtil.getSessionUser(), page, searchCriteria);
         if (vehicleDtoPage.isEmpty())
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "No vehicles found"));
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No vehicles found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
     }
 
@@ -61,6 +61,15 @@ public class VehicleController {
         if (!vehicleService.deleteVehicle(securityUtil.getSessionUser(), licensePlate))
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Vehicle not found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Vehicle deleted successfully"));
+    }
+
+    @PutMapping
+    public ResponseEntity<?> editVehicle(@RequestBody VehicleDto vehicleDto) {
+        if (securityUtil.getSessionUser() == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
+        if (!vehicleService.editVehicle(securityUtil.getSessionUser(), vehicleDto))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Unsuccessful vehicle update"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully updated vehicle"));
     }
 
 }

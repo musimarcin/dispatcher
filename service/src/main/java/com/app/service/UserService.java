@@ -1,11 +1,11 @@
 package com.app.service;
 
-import com.app.converters.UserToUserDto;
+import com.app.utils.UserToUserDto;
 import com.app.dto.UserDto;
 import com.app.model.Role;
 import com.app.model.UserEntity;
 import com.app.repository.UserRepo;
-import com.app.converters.UserDtoToUser;
+import com.app.utils.UserDtoToUser;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

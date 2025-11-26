@@ -5,7 +5,7 @@ import com.app.model.Notification;
 import com.app.model.UserEntity;
 import com.app.repository.NotificationRepo;
 import com.app.repository.UserRepo;
-import com.app.converters.NotificationToNotificationDto;
+import com.app.utils.NotificationToNotificationDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

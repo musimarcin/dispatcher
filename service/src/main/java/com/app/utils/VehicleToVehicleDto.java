@@ -1,4 +1,4 @@
-package com.app.converters;
+package com.app.utils;
 
 import com.app.dto.VehicleDto;
 import com.app.model.Vehicle;

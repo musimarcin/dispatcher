@@ -11,6 +11,7 @@ function Route({showToast}) {
 
     const mapRef = useRef(null);
     const routingControlRef = useRef(null);
+    const [isPopUp, setIsPopUp] = useState(false);
 
     const [locations, setLocations] = useState([
         { id: 1, query: "", street: "", city: "", county: "", state: "", country: "", postalCode: "", coords: null },
@@ -18,15 +19,14 @@ function Route({showToast}) {
     ]);
 
     const [suggestions, setSuggestions] = useState([]);
-
     const [vehicles, setVehicles] = useState([]);
-
     const [selectedVehicle, setSelectedVehicle] = useState(null);
-
     const [routes, setRoutes] = useState([]);
-
     const [distance, setDistance] = useState(0);
     const [estimatedTime, setEstimatedTime] = useState(0);
+    const [tankBefore, setTankBefore] = useState(0);
+    const [tankAfter, setTankAfter] = useState(0);
+    const [fuelUsed, setFuelUsed] = useState(0);
 
     useEffect(() => {
 
@@ -191,13 +191,12 @@ function Route({showToast}) {
         const vehicle = vehicles.find(v => v.licensePlate === vehiclePlate);
         setSelectedVehicle(vehicle);
 
-        if (vehiclePlate) {
-            api.get(`/route/vehicle?licensePlate=${vehiclePlate}`)
-                .then(res => setRoutes(res.data.body.routeDtoList))
-                .catch(err => showToast(err.response?.data.message, "error"));
-        } else {
-            setRoutes([]);
-        }
+        api.get(`/route/vehicle?licensePlate=${vehiclePlate}`)
+            .then(res => setRoutes(res.data.body.routeDtoList)
+            ).catch(err => {
+                showToast(err.response?.data.message, "error")
+                setRoutes([])
+            })
     };
 
     const getCoordsString = (id) => {
@@ -217,7 +216,6 @@ function Route({showToast}) {
             estimatedTime,
             startTime,
             endTime,
-            status: "ACTIVE",
             createdAt: new Date(),
             vehicleDto: selectedVehicle,
             waypoints: locations
@@ -248,10 +246,30 @@ function Route({showToast}) {
     }
 
 
+    const calculateFuel = (id) => {
+        const fuel = tankAfter - tankBefore;
+        setFuelUsed(fuel);
+        api.put("/vehicle", {
+            id : id,
+            averageConsumption : fuel
+        }).then(res => showToast(res.data.message, "success")
+        ).catch(err => showToast(err.response?.data.message, "error"))
+    }
+
+    const getDirectFuel = (id) => {
+        const fuel =
+        api.put("/vehicle", {
+            id : id,
+            averageConsumption : fuelUsed
+        }).then(res => showToast(res.data.message, "success")
+        ).catch(err => showToast(err.response?.data.message, "error"))
+    }
+
+
     return (
         <>
             <div className="container mt-4">
-                <h3>Routes</h3>
+                <h2>Routes</h2>
 
                 <div className="mb-3">
                     <label htmlFor="vehicle" className="form-label">Select Vehicle</label>
@@ -281,6 +299,7 @@ function Route({showToast}) {
                                 <th>Distance (km)</th>
                                 <th>Estimated Time (min)</th>
                                 <th>Date</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -298,6 +317,7 @@ function Route({showToast}) {
                                         <td>{r.distance}</td>
                                         <td>{(r.estimatedTime / 60).toFixed(2)}</td>
                                         <td>{new Date(r.createdAt).toLocaleString("pl-PL")}</td>
+                                        <td>{r.status}</td>
                                         <td>
                                             <button className="btn btn-danger mt-2" onClick={() => removeRoute(r.id)}>
                                                 Remove Route
@@ -305,11 +325,81 @@ function Route({showToast}) {
                                             <button className="btn btn-primary mt-2" onClick={() => displayRouteOnMap(r.id)}>
                                                 Show on map
                                             </button>
+                                            {r.status === "PLANNED" && (
+                                                <button className="btn btn-primary mt-2">
+                                                    Start route
+                                                </button>
+                                            )}
+
+                                            {r.status === "ACTIVE" && (
+                                                <button className="btn btn-success mt-2" onClick={() => setIsPopUp(true)}>
+                                                    Set as completed
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
-
-                                )}
-                            )}
+                                    {isPopUp && (
+                                        <div className="modal show d-block" tabIndex="-1">
+                                            <div className="modal-dialog">
+                                                <div className="modal-content">
+                                                    <div className="modal-header">
+                                                        <h5 className="modal-title">Fuel consumption</h5>
+                                                        <button
+                                                            type="button"
+                                                            className="btn-close"
+                                                            onClick={() => setIsPopUp(false)}
+                                                        ></button>
+                                                    </div>
+                                                    <div className="modal-body">
+                                                        <p>Enter how much fuel you used or tank before and after</p>
+                                                    </div>
+                                                    <div className="modal-footer">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Fuel tank before"
+                                                            value={tankBefore}
+                                                            onChange={(e) => setTankBefore(e.target.value))}
+                                                            className="form-control mb-1"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Fuel tank after"
+                                                            value={tankAfter}
+                                                            onChange={(e) => setTankAfter(e.target.value))}
+                                                            className="form-control mb-1"
+                                                        />
+                                                        <button
+                                                            className="btn btn-danger"
+                                                            onClick={() => {
+                                                                setIsPopUp(false);
+                                                                calculateFuel(r.id);
+                                                            }}
+                                                        >
+                                                            Calculate fuel consumption
+                                                        </button>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Fuel used"
+                                                            value={fuelUsed}
+                                                            onChange={(e) => setFuelUsed(e.target.value))}
+                                                            className="form-control mb-1"
+                                                        />
+                                                        <button
+                                                            className="btn btn-secondary"
+                                                            onClick={() => {
+                                                                setIsPopUp(false);
+                                                                getDirectFuel(r.id);
+                                                            }}
+                                                        >
+                                                            Submit fuel consumption
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                )
+                            })}
                         </tbody>
                     </table>
                 ) : (

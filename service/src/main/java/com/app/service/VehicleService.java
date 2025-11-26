@@ -8,8 +8,9 @@ import com.app.model.Vehicle;
 import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
 import com.app.specifications.VehicleSpecifications;
-import com.app.converters.VehicleDtoToVehicle;
-import com.app.converters.VehicleToVehicleDto;
+import com.app.utils.VehicleDtoToVehicle;
+import com.app.utils.VehicleMapper;
+import com.app.utils.VehicleToVehicleDto;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,14 +32,16 @@ public class VehicleService {
     private final VehicleToVehicleDto vehicleConverter;
     private final VehicleDtoToVehicle vehicleDtoConverter;
     private final VehicleSpecifications vehicleSpecifications;
+    private final VehicleMapper vehicleMapper;
 
-    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo, ApplicationEventPublisher eventPublisher, VehicleToVehicleDto vehicleConverter, VehicleDtoToVehicle vehicleDtoConverter, VehicleSpecifications vehicleSpecifications) {
+    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo, ApplicationEventPublisher eventPublisher, VehicleToVehicleDto vehicleConverter, VehicleDtoToVehicle vehicleDtoConverter, VehicleSpecifications vehicleSpecifications, VehicleMapper vehicleMapper) {
         this.vehicleRepo = vehicleRepo;
         this.userRepo = userRepo;
         this.eventPublisher = eventPublisher;
         this.vehicleConverter = vehicleConverter;
         this.vehicleDtoConverter = vehicleDtoConverter;
         this.vehicleSpecifications = vehicleSpecifications;
+        this.vehicleMapper = vehicleMapper;
     }
 
     private Pageable getPage(Integer page) {
@@ -93,6 +96,17 @@ public class VehicleService {
                 Instant.now()
         );
         eventPublisher.publishEvent(vehicleEvent);
+        return true;
+    }
+
+    @Transactional
+    public boolean editVehicle(String username, VehicleDto vehicleDto) {
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return false;
+        Optional<Vehicle> vehicle = vehicleRepo.findById(vehicleDto.getId());
+        if (vehicle.isEmpty()) return false;
+        vehicleMapper.update(vehicle.get(), vehicleDto);
+        vehicleRepo.save(vehicle.get());
         return true;
     }
 

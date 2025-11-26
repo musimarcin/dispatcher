@@ -1,7 +1,7 @@
 package com.app.service;
 
-import com.app.converters.VehicleDtoToVehicle;
-import com.app.converters.VehicleToVehicleDto;
+import com.app.utils.VehicleDtoToVehicle;
+import com.app.utils.VehicleToVehicleDto;
 import com.app.dto.VehicleDto;
 import com.app.model.Role;
 import com.app.model.UserEntity;

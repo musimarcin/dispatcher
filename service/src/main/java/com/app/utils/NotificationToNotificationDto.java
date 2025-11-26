@@ -1,4 +1,4 @@
-package com.app.converters;
+package com.app.utils;
 
 import com.app.dto.NotificationDto;
 import com.app.model.Notification;

@@ -118,7 +118,7 @@ public class RouteControllerTests {
         mockMvc.perform(get("/api/route/vehicle")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("licensePlate", "9999"))
-                .andExpect(status().isNoContent())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("No routes found"));
     }
 
@@ -154,7 +154,7 @@ public class RouteControllerTests {
         mockMvc.perform(post("/api/route/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "9999"))))
-                .andExpect(status().isNotFound())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("No routes found"));
     }
 

@@ -1,15 +1,11 @@
-package com.app.converters;
+package com.app.utils;
 
 import com.app.dto.RouteDto;
-import com.app.dto.VehicleDto;
 import com.app.model.Route;
 import com.app.model.RoutePoint;
-import com.app.model.Vehicle;
-import com.app.service.VehicleService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
 
 @Component

@@ -1,6 +1,6 @@
 package com.app.service;
 
-import com.app.converters.NotificationToNotificationDto;
+import com.app.utils.NotificationToNotificationDto;
 import com.app.dto.NotificationDto;
 import com.app.model.Notification;
 import com.app.model.Role;

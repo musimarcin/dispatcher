@@ -1,7 +1,7 @@
 package com.app.service;
 
-import com.app.converters.UserDtoToUser;
-import com.app.converters.UserToUserDto;
+import com.app.utils.UserDtoToUser;
+import com.app.utils.UserToUserDto;
 import com.app.dto.UserDto;
 import com.app.model.Role;
 import com.app.model.UserEntity;

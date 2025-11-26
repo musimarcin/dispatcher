@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
     manufacturer VARCHAR(50),
     production_year INT,
     fuel_capacity DECIMAL(5, 2),
-    average_consumption DECIMAL(5, 2),
+    average_consumption DECIMAL(5, 2) DEFAULT 0 NOT NULL,
     mileage INT,
     last_maintenance DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

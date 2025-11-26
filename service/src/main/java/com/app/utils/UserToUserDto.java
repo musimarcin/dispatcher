@@ -1,7 +1,6 @@
-package com.app.converters;
+package com.app.utils;
 
 import com.app.dto.UserDto;
-import com.app.model.Role;
 import com.app.model.UserEntity;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
@@ -9,17 +8,19 @@ import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
 
 @Component
-public class UserDtoToUser implements Converter<UserDto, UserEntity> {
+public class UserToUserDto implements Converter<UserEntity, UserDto> {
 
     @Override
-    public UserEntity convert(UserDto source) {
-        return new UserEntity(
+    public UserDto convert(UserEntity source) {
+        return new UserDto(
                 source.getId(),
                 source.getUsername(),
-                source.getPassword(),
+                "",
                 source.getEmail(),
                 source.getRegistered(),
-                source.getRoles().stream().map(Role::valueOf).collect(Collectors.toSet())
+                source.getRoles().stream().map(String::valueOf).collect(Collectors.toSet())
         );
     }
+
+
 }

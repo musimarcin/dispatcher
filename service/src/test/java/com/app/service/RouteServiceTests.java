@@ -1,7 +1,7 @@
 package com.app.service;
 
-import com.app.converters.RouteDtoToRoute;
-import com.app.converters.RouteToRouteDto;
+import com.app.utils.RouteDtoToRoute;
+import com.app.utils.RouteToRouteDto;
 import com.app.dto.RouteDto;
 import com.app.dto.VehicleDto;
 import com.app.model.*;
