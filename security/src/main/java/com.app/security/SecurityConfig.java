@@ -27,9 +27,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
-    private final JWTAuthEntryPoint authEntryPoint;
+    private final AuthEntryPoint authEntryPoint;
 
-    public SecurityConfig(JWTAuthenticationFilter jwtAuthenticationFilter, JWTAuthEntryPoint authEntryPoint) {
+    public SecurityConfig(JWTAuthenticationFilter jwtAuthenticationFilter, AuthEntryPoint authEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.authEntryPoint = authEntryPoint;
     }
@@ -47,7 +47,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/osrm/**", "/api/nominatim/**").permitAll()
                     .requestMatchers("/api/auth/**", "/api/user/roles").permitAll()
-                    .requestMatchers("/api/user/**", "/api/vehicle/**", "/api/notifications/**", "/api/route/**").authenticated()
+                    .requestMatchers("/api/user/**", "/api/vehicle/**", "/api/notifications/**", "/api/route/**", "/api/fuel/**").authenticated()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .anyRequest().denyAll()
             )

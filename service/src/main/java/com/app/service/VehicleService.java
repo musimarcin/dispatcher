@@ -57,6 +57,11 @@ public class VehicleService {
         return vehiclePage.map(vehicleConverter::convert);
     }
 
+    public VehicleDto getById(Long id) {
+        Optional<Vehicle> vehicle = vehicleRepo.findById(id);
+        return vehicle.map(vehicleConverter::convert).orElse(null);
+    }
+
     public Page<VehicleDto> searchVehicles(String username, Integer page, Map<String, String> searchCriteria) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return Page.empty();

@@ -36,6 +36,16 @@ public class VehicleController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
     }
 
+    @GetMapping(params = "id")
+    public ResponseEntity<?> getById(@RequestParam(name = "id") Long id) {
+        if (securityUtil.getSessionUser() == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
+        VehicleDto vehicleDto = vehicleService.getById(id);
+        if (vehicleDto == null)
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No vehicles found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", vehicleDto));
+    }
+
     @PostMapping("/search")
     public ResponseEntity<?> searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestBody Map<String, String> searchCriteria) {

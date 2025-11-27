@@ -81,7 +81,8 @@ public class RouteSpecifications {
                 builder.equal(root.get("userId"), userId);
     }
 
-    public Specification<Route> build(Map<String, String> searchCriteria, Long id) {
+
+    public Specification<Route> build(Map<String, String> searchCriteria, Long userId) {
         Specification<Route> specification = Specification.where(null);
 
         if (StringUtils.hasText(searchCriteria.get("status")))
@@ -148,7 +149,7 @@ public class RouteSpecifications {
             specification = specification.and(createdAtLessThan(createdAtTo));
         } else specification = specification.and(createdAtLessThan(Instant.now()));
 
-        specification = specification.and(containsUserId(id));
+        specification = specification.and(containsUserId(userId));
 
         return specification;
     }

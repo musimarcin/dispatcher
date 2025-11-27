@@ -6,6 +6,7 @@ import api from '../assets/api'
 import { useState, useEffect, useRef } from 'react';
 import markerImg from '../assets/marker-icon.png';
 import shadowImg from '../assets/marker-shadow.png';
+import FuelHistories from '../assets/FuelHistories';
 
 function Route({showToast}) {
 
@@ -279,6 +280,18 @@ function Route({showToast}) {
         }).then(res => showToast(res.data.message, "success")
         ).catch(err => showToast(err.response?.data.message, "error"))
 
+        api.post("/fuel/history", {
+            fuelConsumed: fuel,
+            vehicleId : selectedVehicle.id,
+            routeId
+        }).then(response => {
+            if (response.data.body == null) {
+                showToast(response.data.message, "error");
+                return;
+            }
+            showToast(response.data.message, "success")
+        }).catch(err => console.log(err))
+
         api.put("/route", {
             id : routeId,
             status: "FINISHED"
@@ -296,6 +309,18 @@ function Route({showToast}) {
             mileage : distance
         }).then(res => showToast(res.data.message, "success")
         ).catch(err => showToast(err.response?.data.message, "error"))
+
+        api.post("/fuel/history", {
+            fuelConsumed: fuelUsed,
+            vehicleId : selectedVehicle.id,
+            routeId
+        }).then(response => {
+            if (response.data.body == null) {
+                showToast(response.data.message, "error");
+                return;
+            }
+            showToast(response.data.message, "success")
+        }).catch(err => console.log(err))
 
         api.put("/route", {
             id : routeId,
@@ -322,7 +347,6 @@ function Route({showToast}) {
         <>
             <div className="container mt-4">
                 <h2>Routes</h2>
-
                 <div className="mb-3">
                     <label htmlFor="vehicle" className="form-label">Select Vehicle</label>
                     <select
@@ -402,6 +426,11 @@ function Route({showToast}) {
                     selectedVehicle && <p>No routes available for this vehicle.</p>
                 )}
             </div>
+
+            {selectedVehicle && (
+                <FuelHistories vehId={selectedVehicle.id} showToast={showToast} />
+            )}
+
             {locations.map((loc) => (
                 <div key={loc.id} className="container mb-3 border p-2 rounded">
                     <input

@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-
 @Repository
 public interface UserRepo extends JpaRepository<UserEntity, Long> {
 

@@ -71,7 +71,8 @@ public class VehicleSpecifications {
                 builder.equal(root.get("userId"), userId);
     }
 
-    public Specification<Vehicle> build(Map<String, String> searchCriteria, Long id) {
+
+    public Specification<Vehicle> build(Map<String, String> searchCriteria, Long userId) {
         Specification<Vehicle> specification = Specification.where(null);
 
         if (StringUtils.hasLength(searchCriteria.get("licensePlate")))
@@ -123,7 +124,7 @@ public class VehicleSpecifications {
             specification = specification.and(mileageLessThan(mileageTo));
         } else specification = specification.and(mileageLessThan(Integer.MAX_VALUE));
 
-        specification = specification.and(containsUserId(id));
+        specification = specification.and(containsUserId(userId));
 
         return specification;
     }
