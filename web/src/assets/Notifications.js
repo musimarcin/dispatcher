@@ -11,11 +11,14 @@ function Notifications({showToast}) {
     useEffect(() => {
         api.get(`/notifications?page=${notificationPage + 1}`
         ).then((response) => {
+            if (response.data.body == null) {
+                showToast(response.data.message, "error")
+                return;
+            }
             setNotifications(response.data.body.notificationDtoList);
             setNotificationTotalPages(response.data.body.totalPages);
             setSelectedNotification(null); // reset selection on page change
-        })
-        .catch((err) => showToast(err.response?.data.message, "error"));
+        }).catch((err) => console.log(err))
     }, [notificationPage]);
 
     const selectNotification = (notification) => {

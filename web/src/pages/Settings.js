@@ -11,30 +11,35 @@ function Settings({showToast}) {
     const [selectedUserRoles, setSelectedUserRoles] = useState([]);
     const [selectedAvailableRoles, setSelectedAvailableRoles] = useState([]);
     const [userRoles, setUserRoles] = useState([]);
+    const [availableRoles, setAvailableRoles] = useState([]);
     const [isPopUp, setIsPopUp] = useState(false);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        api.get("/user/roles")
+            .then(response => {
+                if (!response.data.body) {
+                    showToast(response.data.message, "error");
+                    return;
+                }
+                setRoles(response.data.body);
+                setAvailableRoles(response.data.body)
+            }).catch(err => console.log(err));
+    }, []);
 
     useEffect(() => {
-        const storedRoles = localStorage.getItem("roles");
-        if (storedRoles) {
-            setRoles(JSON.parse(storedRoles))
-        } else {
-            api.get("/user/roles")
-            .then(response => {
-                setRoles(response.data.body);
-                localStorage.setItem("roles", JSON.stringify(response.data.body));
-            }).catch(err => showToast("Failed to fetch roles", "error"));
-        }
-
         api.get("/user/roles/me")
             .then(response => {
-                setUserRoles(response.data.body || []);
-                const filtered = roles.filter(role => !userRoles.includes(role));
-                setRoles(filtered);
+                const res = response.data.body;
+                if (res == null) {
+                    showToast(response.data.message, "error")
+                    return;
+                }
+                setUserRoles(res || []);
+                setAvailableRoles(roles.filter(role => !res.includes(role)));
                 setSelectedAvailableRoles([]);
-            }).catch(err => showToast("Failed to fetch roles", "error"));
-    }, []);
+            }).catch(err => console.log(err));
+    }, [roles]);
 
     const handleUserRolesChange = (e) => {
         const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
@@ -67,6 +72,7 @@ function Settings({showToast}) {
             setPassword("")
         }).catch(err => showToast(err.response?.data.message, "error"));
     }
+
     const changeEmail = async (e) => {
         e.preventDefault();
 
@@ -86,7 +92,7 @@ function Settings({showToast}) {
         ).then(res => {
             const filtered = userRoles.filter(role => !selectedUserRoles.includes(role))
             setUserRoles(filtered)
-            setRoles(roles.concat(selectedUserRoles));
+            setAvailableRoles(availableRoles.concat(selectedUserRoles));
             setSelectedUserRoles([]); //refreshes window
             showToast(res.data.message, "success");
         }).catch(err => showToast(err.res?.data.message, "error"));
@@ -99,8 +105,8 @@ function Settings({showToast}) {
             { roles: selectedAvailableRoles }
         ).then(response => {
             setUserRoles(userRoles.concat(selectedAvailableRoles))
-            const filtered = roles.filter(role => !selectedAvailableRoles.includes(role))
-            setRoles(filtered);
+            const filtered = availableRoles.filter(role => !selectedAvailableRoles.includes(role))
+            setAvailableRoles(filtered);
             setSelectedAvailableRoles([]); //refreshes window
             showToast(response.data.message, "success");
         }).catch(err => showToast(err.response?.data.message, "error"));
@@ -183,7 +189,7 @@ function Settings({showToast}) {
                         value={selectedAvailableRoles}
                         size={5}
                     >
-                        {roles.map((role) => (
+                        {availableRoles.map((role) => (
                             <option key={role} value={role}>{role}</option>
                         ))}
                     </select>

@@ -29,7 +29,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @WebMvcTest(controllers = AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -57,7 +56,7 @@ public class AuthControllerTests {
 
     @BeforeEach
     void setUp() {
-        userDtoJohn = UserDto.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
+        userDtoJohn = UserDto.builder().username("John").password("smithsmith").email("john@smith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
         userDtoAdam = UserDto.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("DRIVER"))).build();
     }
 

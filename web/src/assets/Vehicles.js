@@ -11,11 +11,15 @@ function Vehicles({showToast}) {
     useEffect(() => {
         api.get(`/vehicle?page=${vehiclePage + 1}`
         ).then((response) => {
+            if (response.data.body == null) {
+                showToast(response.data.message, "error")
+                return;
+            }
             setVehicles(response.data.body.vehicleDtoList);
             setVehicleTotalPages(response.data.body.totalPages);
             setSelectedVehicle(null); // reset selection when page changes
-        })
-        .catch((err) => showToast(err.response?.data.message, "error"));
+        }).catch((err) => console.log(err))
+
     }, [vehiclePage]);
 
     return (

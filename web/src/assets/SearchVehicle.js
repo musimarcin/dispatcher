@@ -27,8 +27,13 @@ function SearchVehicle({showToast}) {
     const handleSearch = async (e) => {
         e.preventDefault();
         api.post(`/vehicle/search?page=${page}`, search)
-        .then(res => setVehicles(res.data.body)
-        ).catch(err => showToast(err.response?.data.message, "error"));
+        .then((response) => {
+            if (response.data.body == null) {
+                showToast(response.data.message, "error")
+                return;
+            }
+            setVehicles(response.data.body)
+        }).catch((err) => console.log(err))
     };
 
     const removeVehicle = (licensePlate) => {

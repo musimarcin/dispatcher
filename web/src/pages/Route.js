@@ -44,8 +44,13 @@ function Route({showToast}) {
         mapRef.current = map;
 
         api.get("/vehicle")
-        .then(res => setVehicles(res.data.body.vehicleDtoList))
-        .catch(err => showToast(err.response?.data.message, "error"))
+        .then(response => {
+            if (response.data.body == null) {
+                showToast(response.data.message, "error")
+                return;
+            }
+            setVehicles(response.data.body.vehicleDtoList)
+        }).catch((err) => console.log(err))
 
         return () => {
             if (routingControlRef.current) routingControlRef.current.remove();
@@ -94,8 +99,12 @@ function Route({showToast}) {
 
         api.get(`/nominatim?q=${value}`)
         .then(response => {
+            if (response.data.body == null) {
+                showToast(response.data.message, "error")
+                return;
+            }
             setSuggestions(response.data.body.map((s) => ({ ...s, locId: id})))
-        }).catch(err => showToast(err.response?.data.message, "error"))
+        }).catch((err) => console.log(err))
     };
 
     const handleSuggestionClick = (s) => {
@@ -127,6 +136,10 @@ function Route({showToast}) {
             postalCode: loc.postalCode
         }).then(response => {
             const results = response.data.body
+            if (results == null) {
+                showToast(response.data.message, "error")
+                return;
+            }
             if (results.length > 0) {
                 const { lat, lon, display_name } = results[0];
                 setLocations((prev) =>
@@ -139,7 +152,7 @@ function Route({showToast}) {
                 const waypoints = getWaypoints();
                 updateRoute(waypoints);
             }
-        }).catch(err => showToast(err.response?.data.message, "error"));
+        }).catch((err) => console.log(err));
     };
 
     const getWaypoints = () => {
@@ -189,15 +202,22 @@ function Route({showToast}) {
 
     const handleVehicleChange = (e) => {
         const vehiclePlate = e.target.value;
+        if (!vehiclePlate) {
+            setSelectedVehicle(null)
+            setRoutes([]);
+            return;
+        }
         const vehicle = vehicles.find(v => v.licensePlate === vehiclePlate);
         setSelectedVehicle(vehicle);
 
         api.get(`/route/vehicle?licensePlate=${vehiclePlate}`)
-            .then(res => setRoutes(res.data.body.routeDtoList)
-            ).catch(err => {
-                showToast(err.response?.data.message, "error")
-                setRoutes([])
-            })
+            .then(response => {
+                if (response.data.body == null) {
+                    showToast(response.data.message, "error")
+                    return;
+                }
+                setRoutes(response.data.body.routeDtoList)
+            }).catch(err => console.log(err))
     };
 
     const getCoordsString = (id) => {
@@ -264,7 +284,7 @@ function Route({showToast}) {
             status: "FINISHED"
         }).then(res => {
             showToast(res.data.message, "success")
-            setRoutes(routes)
+            handleVehicleChange({ target: { value: selectedVehicle.licensePlate } });
         }).catch(err => showToast(err.response?.data.message, "error"))
         setIsPopUp(false);
     }
@@ -280,8 +300,10 @@ function Route({showToast}) {
         api.put("/route", {
             id : routeId,
             status: "FINISHED"
-        }).then(res => showToast(res.data.message, "success")
-        ).catch(err => showToast(err.response?.data.message, "error"))
+        }).then(res => {
+            showToast(res.data.message, "success")
+            handleVehicleChange({ target: { value: selectedVehicle.licensePlate } });
+        }).catch(err => showToast(err.response?.data.message, "error"))
         setIsPopUp(false);
     }
 
@@ -289,8 +311,10 @@ function Route({showToast}) {
         api.put("/route", {
             id,
             status: "ACTIVE"
-        }).then(res => showToast(res.data.message, "success")
-        ).catch(err => showToast(err.response?.data.message, "error"))
+        }).then(res => {
+            showToast(res.data.message, "success")
+            handleVehicleChange({ target: { value: selectedVehicle.licensePlate } });
+        }).catch(err => showToast(err.response?.data.message, "error"))
     }
 
 

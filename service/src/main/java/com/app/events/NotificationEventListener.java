@@ -22,9 +22,12 @@ public class NotificationEventListener {
     @EventListener
     public void handleVehicleEvent(VehicleEvent event) {
         String message = switch (event.eventType()) {
-            case CREATED -> "New vehicle added: " + event.vehicle().getModel();
-            case UPDATED -> "Vehicle updated: " + event.vehicle().getModel();
-            case DELETED -> "Vehicle removed: " + event.vehicle().getModel();
+            case CREATED -> "New vehicle added: " + event.vehicle().getModel()
+                    + " (" + event.vehicle().getLicensePlate() + ")";
+            case UPDATED -> "Vehicle updated: " + event.vehicle().getModel()
+                    + " (" + event.vehicle().getLicensePlate() + ")";
+            case DELETED -> "Vehicle removed: " + event.vehicle().getModel()
+                    + " (" + event.vehicle().getLicensePlate() + ")";
         };
 
         Notification notification = new Notification(
@@ -43,11 +46,17 @@ public class NotificationEventListener {
     public void handleRouteEvent(RouteEvent event) {
         String message = switch (event.eventType()) {
             case CREATED -> "New route from " + event.route().getWaypoints().stream().findFirst().get().getName() +
-                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName();
+                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName() +
+                    " for vehicle " + event.route().getVehicle().getModel() +
+                    " (" + event.route().getVehicle().getLicensePlate() + ")";
             case UPDATED -> "Route updated: " + event.route().getWaypoints().stream().findFirst().get().getName() +
-                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName();
+                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName() +
+                    " for vehicle " + event.route().getVehicle().getModel() +
+                    " (" + event.route().getVehicle().getLicensePlate() + ")";
             case DELETED -> "Route deleted: " + event.route().getWaypoints().stream().findFirst().get().getName() +
-                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName();
+                    " to " + event.route().getWaypoints().get(event.route().getWaypoints().size() - 1).getName()+
+                    " for vehicle " + event.route().getVehicle().getModel() +
+                    " (" + event.route().getVehicle().getLicensePlate() + ")";
         };
 
         Notification notification = new Notification(

@@ -21,9 +21,13 @@ function Register({showToast}) {
         } else {
             api.get("/user/roles")
             .then(response => {
-                setRoles(response.data.role);
-                localStorage.setItem("roles", JSON.stringify(response.data));
-            }).catch(err => showToast(err.response?.data.message, "error"));
+                if (response.data.body == null) {
+                    showToast(response.data.message, "error")
+                    return;
+                }
+                setRoles(response.data.body);
+                localStorage.setItem("roles", JSON.stringify(response.data.body));
+            }).catch((err) => console.log(err));
         }
     }, []);
 
@@ -42,7 +46,7 @@ function Register({showToast}) {
             roles: [selectedRole]
         }).then(response => {
             showToast(response.data.message, "success");
-            setTimeout(navigate('/login'), 2000);
+            setTimeout(navigate('/login'), 8000);
         }).catch(err => showToast(err.response?.data.message, "error"));
     };
 

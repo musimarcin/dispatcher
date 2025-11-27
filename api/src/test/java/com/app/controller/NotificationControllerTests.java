@@ -77,7 +77,7 @@ public class NotificationControllerTests {
         mockMvc.perform(get("/api/notifications")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Notification not found"));
+                .andExpect(jsonPath("$.message").value("No notification found"));
     }
 
     @Test

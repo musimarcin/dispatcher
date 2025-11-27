@@ -136,9 +136,9 @@ public class UserController {
     public ResponseEntity<?> getUserRoles() {
         String username = securityUtil.getSessionUser();
         if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("body", Collections.emptySet()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         if (userService.getUserRoles(username).isEmpty())
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", Collections.emptySet()));
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No roles found"));
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", userService.getUserRoles(username)));
     }

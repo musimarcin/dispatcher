@@ -30,7 +30,7 @@ public class NotificationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
         Page<NotificationDto> notificationDtoPage = notificationService.getAllNotifications(username, page);
         if (notificationDtoPage.isEmpty())
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Notification not found"));
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No notification found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new NotificationsDto(notificationDtoPage)));
     }
 
