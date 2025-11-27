@@ -30,7 +30,7 @@ function FuelHistories({vehId, showToast}) {
                             </tr>
                         </thead>
                         <tbody>
-                            {fuelHistory.map(f => (
+                            {fuelHistory.map((f) => (
                                 <tr key={f.id}>
                                     <td>{f.fuelConsumed}</td>
                                     <td>{new Date(f.createdAt).toLocaleString("pl-Pl")}</td>

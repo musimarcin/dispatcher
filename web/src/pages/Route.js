@@ -494,7 +494,9 @@ function Route({showToast}) {
                     Add Location to Vehicle
                 </button>
             </div>
-            <div id="map" className="d-flex justify-content-center"></div>
+
+            <div id="map" className="mt-4 container"></div>
+
             {isPopUp && (
                 <div className="modal show d-block" tabIndex="-1">
                     <div className="modal-dialog">
