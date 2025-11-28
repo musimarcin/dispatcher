@@ -19,7 +19,7 @@ function Register({showToast}) {
         if (storedRoles) {
             setRoles(JSON.parse(storedRoles))
         } else {
-            api.get("/user/roles")
+            api.get("/roles")
             .then(response => {
                 if (response.data.body == null) {
                     showToast(response.data.message, "error")

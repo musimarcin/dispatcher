@@ -23,7 +23,7 @@ function Login({showToast}) {
 
     return (
         <div className="d-flex justify-content-center align-items-center mt-5">
-            <div className="mw-25 p-4 border rounded shadow-lg">
+            <div className="p-4 border rounded shadow-lg">
                 <h2 className="mb-4">Login</h2>
                 <form onSubmit={handleSubmit}>
                     <input

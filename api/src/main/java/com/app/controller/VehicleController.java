@@ -46,6 +46,18 @@ public class VehicleController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", vehicleDto));
     }
 
+    @GetMapping(params = "driver")
+    public ResponseEntity<?> getByDriver(@RequestParam(name = "page", defaultValue = "1" ) Integer page,
+                                         @RequestParam(name = "driver") String driver) {
+        String username = securityUtil.getSessionUser();
+        if (username == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
+        Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(driver, page);
+        if (vehicleDtoPage.isEmpty())
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No vehicles found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
+    }
+
     @PostMapping("/search")
     public ResponseEntity<?> searchVehicles(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestBody Map<String, String> searchCriteria) {

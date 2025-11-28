@@ -107,7 +107,7 @@ public class RouteServiceTests {
     @Test
     void givenValidUser_whenGetVehicleRoutes_thenReturnPage() {
         given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
-        given(vehicleRepo.findByUserIdAndLicensePlate(anyLong(), anyString())).willReturn(Optional.of(vehicle));
+        given(vehicleRepo.findByLicensePlate(anyString())).willReturn(Optional.of(vehicle));
         given(routeRepo.findByVehicle(any(Vehicle.class), any(Pageable.class))).willReturn(routes);
         given(routeConverter.convert(route)).willReturn(routeDto);
 
@@ -130,7 +130,7 @@ public class RouteServiceTests {
     @Test
     void givenValidUserAndInvalidVehicle_whenGetAllRoutes_thenReturnEmptyPage() {
         given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
-        given(vehicleRepo.findByUserIdAndLicensePlate(anyLong(), anyString())).willReturn(Optional.empty());
+        given(vehicleRepo.findByLicensePlate(anyString())).willReturn(Optional.empty());
 
         Page<RouteDto> result = routeService.getVehicleRoutes(userJohn.getUsername(), vehicle.getLicensePlate(), 0);
 

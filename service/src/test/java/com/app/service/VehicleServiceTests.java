@@ -149,7 +149,7 @@ public class VehicleServiceTests {
     @Test
     void givenValidUser_whenDeleteVehicle_thenReturnTrue() {
         given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
-        given(vehicleRepo.findByUserIdAndLicensePlate(anyLong(), anyString())).willReturn(Optional.of(vehicle));
+        given(vehicleRepo.findByLicensePlate(anyString())).willReturn(Optional.of(vehicle));
 
         boolean result = vehicleService.deleteVehicle(userJohn.getUsername(), vehicle.getLicensePlate());
 
@@ -168,7 +168,7 @@ public class VehicleServiceTests {
     @Test
     void givenValidUserAndInvalidVehicle_whenDeleteVehicle_thenReturnFalse() {
         given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
-        given(vehicleRepo.findByUserIdAndLicensePlate(anyLong(), anyString())).willReturn(Optional.empty());
+        given(vehicleRepo.findByLicensePlate(anyString())).willReturn(Optional.empty());
 
         boolean result = vehicleService.deleteVehicle(userJohn.getUsername(), vehicle.getLicensePlate());
 

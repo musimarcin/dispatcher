@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from './api'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function Navbar({ isLoggedIn, showToast }) {
+function Navbar({ user, showToast }) {
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -18,7 +18,7 @@ function Navbar({ isLoggedIn, showToast }) {
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
             <div className="container-fluid">
-                { isLoggedIn ?
+                { user ?
                 <>
                     <Link className="navbar-brand" to="/">Dispatcher</Link>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

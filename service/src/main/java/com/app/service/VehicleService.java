@@ -94,7 +94,7 @@ public class VehicleService {
     public boolean deleteVehicle(String username, String licensePlate) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return false;
-        Optional<Vehicle> vehicle = vehicleRepo.findByUserIdAndLicensePlate(user.get().getId(), licensePlate);
+        Optional<Vehicle> vehicle = vehicleRepo.findByLicensePlate(licensePlate);
         if (vehicle.isEmpty()) return false;
         vehicleRepo.delete(vehicle.get());
         VehicleEvent vehicleEvent = new VehicleEvent(

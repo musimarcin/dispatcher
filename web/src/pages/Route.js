@@ -3,12 +3,15 @@ import 'leaflet/dist/leaflet.css';
 import "leaflet-routing-machine";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import api from '../assets/api'
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
+import { AuthContext } from "../assets/AuthContext";
 import markerImg from '../assets/marker-icon.png';
 import shadowImg from '../assets/marker-shadow.png';
 import FuelHistories from '../assets/FuelHistories';
 
 function Route({showToast}) {
+
+    const { user } = useContext(AuthContext);
 
     const mapRef = useRef(null);
     const routingControlRef = useRef(null);
@@ -29,6 +32,8 @@ function Route({showToast}) {
     const [tankAfter, setTankAfter] = useState(0);
     const [fuelUsed, setFuelUsed] = useState(0);
     const [routeId, setRouteId] = useState(0);
+    const [drivers, setDrivers] = useState([]);
+    const [selectedDriver, setSelectedDriver] = useState([]);
 
     useEffect(() => {
 
@@ -44,20 +49,32 @@ function Route({showToast}) {
 
         mapRef.current = map;
 
-        api.get("/vehicle")
-        .then(response => {
-            if (response.data.body == null) {
-                showToast(response.data.message, "error")
-                return;
-            }
-            setVehicles(response.data.body.vehicleDtoList)
-        }).catch((err) => console.log(err))
+        if (user.roles.includes("DRIVER")) {
+            api.get("/vehicle")
+            .then(response => {
+                if (response.data.body == null) {
+                    showToast(response.data.message, "error")
+                    return;
+                }
+                setVehicles(response.data.body.vehicleDtoList)
+            }).catch((err) => console.log(err))
+        }
+
+        if (user.roles.includes("DISPATCHER")) {
+            api.get("/user/drivers")
+            .then(response => {
+                if (response.data.body == null) {
+                    showToast(response.data.message, "error")
+                    return;
+                }
+                setDrivers(response.data.body)
+            }).catch((err) => console.log(err))
+        }
 
         return () => {
             if (routingControlRef.current) routingControlRef.current.remove();
             map.remove();
         };
-
     }, []);
 
     useEffect(() => {
@@ -247,7 +264,8 @@ function Route({showToast}) {
                     latitude: loc.coords.lat,
                     longitude: loc.coords.lon,
                     sequence: i + 1,
-                }))
+                })),
+            userId: selectedDriver.id
         };
 
         api.post("/route",
@@ -342,26 +360,69 @@ function Route({showToast}) {
         }).catch(err => showToast(err.response?.data.message, "error"))
     }
 
+    const handleDriverChange = (e) => {
+        const driverName = e.target.value;
+        if (!driverName) {
+            setSelectedDriver(null);
+            setVehicles([]);
+            setRoutes([]);
+            return;
+        }
+        const driver = drivers.find(d => d.username === driverName);
+        setSelectedDriver(driver)
+
+        api.get(`/vehicle?driver=${driverName}`)
+        .then(response => {
+            if (response.data.body == null) {
+                showToast(response.data.message, "error")
+                return;
+            }
+            setVehicles(response.data.body.vehicleDtoList)
+        }).catch((err) => console.log(err))
+    }
+
 
     return (
         <>
             <div className="container mt-4">
                 <h2>Routes</h2>
                 <div className="mb-3">
-                    <label htmlFor="vehicle" className="form-label">Select Vehicle</label>
-                    <select
-                        id="vehicle"
-                        className="form-select"
-                        value={selectedVehicle?.licensePlate || ""}
-                        onChange={handleVehicleChange}
-                    >
-                        <option value="">-- Choose Vehicle --</option>
-                            {vehicles.map((v) => (
-                                <option key={v.licensePlate} value={v.licensePlate}>
-                                    {v.model} ({v.licensePlate})
-                                </option>
-                            ))}
-                    </select>
+                    {user.roles.includes("DISPATCHER") && (
+                    <div>
+                        <label htmlFor="driver" className="form-label">Select Driver</label>
+                        <select
+                            id="driver"
+                            className="form-select"
+                            value={selectedDriver?.username || ""}
+                            onChange={handleDriverChange}
+                        >
+                            <option value="">-- Choose Driver --</option>
+                                {drivers.map((d) => (
+                                    <option key={d.username} value={d.username}>
+                                        {d.id}. {d.username}
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
+                    )}
+                    {(selectedDriver !== null || user.roles.includes("DRIVER")) && (
+                    <div>
+                        <label htmlFor="vehicle" className="form-label">Select Vehicle</label>
+                        <select
+                            id="vehicle"
+                            className="form-select"
+                            value={selectedVehicle?.licensePlate || ""}
+                            onChange={handleVehicleChange}
+                        >
+                            <option value="">-- Choose Vehicle --</option>
+                                {vehicles.map((v) => (
+                                    <option key={v.licensePlate} value={v.licensePlate}>
+                                        {v.id}. {v.model} ({v.licensePlate})
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
+                    )}
                 </div>
 
                 {routes.length > 0 ? (
@@ -395,18 +456,20 @@ function Route({showToast}) {
                                         <td>{new Date(r.createdAt).toLocaleString("pl-PL")}</td>
                                         <td>{r.status}</td>
                                         <td>
-                                            <button className="btn btn-danger mt-2" onClick={() => removeRoute(r.id)}>
-                                                Remove Route
-                                            </button>
+                                            {user.roles.includes("DISPATCHER") && (
+                                                <button className="btn btn-danger mt-2" onClick={() => removeRoute(r.id)}>
+                                                    Remove Route
+                                                </button>
+                                            )}
                                             <button className="btn btn-primary mt-2" onClick={() => displayRouteOnMap(r.id)}>
                                                 Show on map
                                             </button>
-                                            {r.status === "PLANNED" && (
+                                            {r.status === "PLANNED" && user.roles.includes("DRIVER") && (
                                                 <button className="btn btn-primary mt-2" onClick={() => startRoute(r.id)}>
                                                     Start route
                                                 </button>
                                             )}
-                                            {r.status === "ACTIVE" && (
+                                            {r.status === "ACTIVE" && user.roles.includes("DRIVER") && (
                                                 <button className="btn btn-success mt-2" onClick={() => {
                                                         setIsPopUp(true)
                                                         setDistance(r.distance)
@@ -431,70 +494,73 @@ function Route({showToast}) {
                 <FuelHistories vehId={selectedVehicle.id} showToast={showToast} />
             )}
 
-            {locations.map((loc) => (
-                <div key={loc.id} className="container mb-3 border p-2 rounded">
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        value={loc.query}
-                        onChange={(e) => handleQueryChange(loc.id, e.target.value)}
-                        className="form-control mb-1"
-                    />
-                    {suggestions
-                        .filter((s) => s.locId === loc.id)
-                        .map((s, i) => (
-                        <div
-                            key={i}
-                            className="list-group-item list-group-item-action"
-                            onClick={() => handleSuggestionClick(s)}
-                            style={{ cursor: "pointer" }}
-                        >
-                        {s.display_name}
-                        </div>
-                    ))}
-                    <div className="d-flex gap-2 flex-wrap">
-                            <input type="text" placeholder="Street" value={loc.street}
-                                onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, street: e.target.value} : l))}
-                                className="mr-2 p-2 border rounded" />
-                            <input type="text" placeholder="City" value={loc.city}
-                                onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, city: e.target.value} : l))}
-                                className="mr-2 p-2 border rounded" />
-                            <input type="text" placeholder="County" value={loc.county}
-                                onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, county: e.target.value} : l))}
-                                className="mr-2 p-2 border rounded" />
-                            <input type="text" placeholder="State" value={loc.state}
-                                onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, state: e.target.value} : l))}
-                                className="mr-2 p-2 border rounded" />
-                            <input type="text" placeholder="Country" value={loc.country}
-                                onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, country: e.target.value} : l))}
-                                className="mr-2 p-2 border rounded" />
-                            <input type="text" placeholder="Postal Code" value={loc.postalCode}
-                                onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, postalCode: e.target.value} : l))}
-                                className="mr-2 p-2 border rounded" />
-                    </div>
-                        <button className="btn btn-primary mt-2 me-1" onClick={() => handleStructuredSearch(loc.id)}>
-                            Structured Search
-                        </button>
-                        {locations.length > 2 && (
-                            <button
-                                className="btn btn-danger mt-2"
-                                onClick={() => removeLocation(loc.id)}
+            {user.roles.includes("DISPATCHER") && (
+                <div>
+                {locations.map((loc) => (
+                    <div key={loc.id} className="container mb-3 border p-2 rounded">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={loc.query}
+                            onChange={(e) => handleQueryChange(loc.id, e.target.value)}
+                            className="form-control mb-1"
+                        />
+                        {suggestions
+                            .filter((s) => s.locId === loc.id)
+                            .map((s, i) => (
+                            <div
+                                key={i}
+                                className="list-group-item list-group-item-action"
+                                onClick={() => handleSuggestionClick(s)}
+                                style={{ cursor: "pointer" }}
                             >
-                                Remove Location
+                            {s.display_name}
+                            </div>
+                        ))}
+                        <div className="d-flex gap-2 flex-wrap">
+                                <input type="text" placeholder="Street" value={loc.street}
+                                    onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, street: e.target.value} : l))}
+                                    className="mr-2 p-2 border rounded" />
+                                <input type="text" placeholder="City" value={loc.city}
+                                    onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, city: e.target.value} : l))}
+                                    className="mr-2 p-2 border rounded" />
+                                <input type="text" placeholder="County" value={loc.county}
+                                    onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, county: e.target.value} : l))}
+                                    className="mr-2 p-2 border rounded" />
+                                <input type="text" placeholder="State" value={loc.state}
+                                    onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, state: e.target.value} : l))}
+                                    className="mr-2 p-2 border rounded" />
+                                <input type="text" placeholder="Country" value={loc.country}
+                                    onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, country: e.target.value} : l))}
+                                    className="mr-2 p-2 border rounded" />
+                                <input type="text" placeholder="Postal Code" value={loc.postalCode}
+                                    onChange={(e) => setLocations((prev) => prev.map(l => l.id===loc.id ? {...l, postalCode: e.target.value} : l))}
+                                    className="mr-2 p-2 border rounded" />
+                        </div>
+                            <button className="btn btn-primary mt-2 me-1" onClick={() => handleStructuredSearch(loc.id)}>
+                                Structured Search
                             </button>
-                        )}
+                            {locations.length > 2 && (
+                                <button
+                                    className="btn btn-danger mt-2"
+                                    onClick={() => removeLocation(loc.id)}
+                                >
+                                    Remove Location
+                                </button>
+                            )}
+                    </div>
+                ))}
+                <div className="container">
+                    <button className="btn btn-success m-1" onClick={addLocation}>
+                        Add Location
+                    </button>
+
+                    <button className="btn btn-success ms-1" onClick={addLocationToVehicle}>
+                        Add Location to Vehicle
+                    </button>
                 </div>
-            ))}
-            <div className="container">
-                <button className="btn btn-success m-1" onClick={addLocation}>
-                    Add Location
-                </button>
-
-                <button className="btn btn-success ms-1" onClick={addLocationToVehicle}>
-                    Add Location to Vehicle
-                </button>
-            </div>
-
+                </div>
+            )}
             <div id="map" className="mt-4 container"></div>
 
             {isPopUp && (

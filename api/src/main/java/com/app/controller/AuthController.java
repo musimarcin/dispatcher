@@ -1,6 +1,7 @@
 package com.app.controller;
 
 import com.app.dto.UserDto;
+import com.app.dto.UserInfo;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
 import com.app.service.UserService;
@@ -67,10 +68,14 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully logged out"));
     }
 
-    @GetMapping("/check")
-    public ResponseEntity<Boolean> isLoggedIn() {
-        if (securityUtil.getSessionUser() == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
-        return ResponseEntity.status(HttpStatus.OK).body(true);
+    @GetMapping("/me")
+    public ResponseEntity<?> getUserInfo() {
+        String username = securityUtil.getSessionUser();
+        if (username == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
+        UserInfo user = userService.getUserInfo(username);
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", user));
     }
 }

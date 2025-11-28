@@ -226,62 +226,6 @@ public class UserControllerTests {
                 .andExpect(jsonPath("$.message").value("Email cannot be empty"));
     }
 
-    @Test
-    void givenValidUser_whenRemoveRoles_thenReturnOk() throws Exception {
-        given(securityUtil.getSessionUser()).willReturn(userDtoJohn.getUsername());
-        given(userService.removeRoles(anyString(), anySet())).willReturn(true);
 
-        mockMvc.perform(patch("/api/user/roles/remove")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"DISPATCHER\"]}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Successfully removed role [DISPATCHER]"));
-    }
-
-    @Test
-    void givenInvalidUser_whenRemoveRoles_thenReturnOk() throws Exception {
-        given(securityUtil.getSessionUser()).willReturn(null);
-
-        mockMvc.perform(patch("/api/user/roles/remove")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"DISPATCHER\"]}"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("You are not logged in to change user details"));
-    }
-
-    @Test
-    void givenInvalidUser_whenAddRoles_thenReturnOk() throws Exception {
-        given(securityUtil.getSessionUser()).willReturn(null);
-
-        mockMvc.perform(patch("/api/user/roles/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"ROLE_DRIVER\"]}"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("You are not logged in to change user details"));
-    }
-
-    @Test
-    void givenValidUser_whenAddRoles_thenReturnOk() throws Exception {
-        given(securityUtil.getSessionUser()).willReturn(userDtoJohn.getUsername());
-        given(userService.addRoles(anyString(), anySet())).willReturn(true);
-
-        mockMvc.perform(patch("/api/user/roles/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"DRIVER\"]}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Successfully added role [DRIVER]"));
-    }
-
-    @Test
-    void givenValidUser_whenAddRoles_thenReturnBadRequest() throws Exception {
-        given(securityUtil.getSessionUser()).willReturn(userDtoJohn.getUsername());
-        given(userService.addRoles(anyString(), anySet())).willReturn(false);
-
-        mockMvc.perform(patch("/api/user/roles/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roles\": [\"DRIVER\"]}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Failed to add role"));
-    }
 
 }

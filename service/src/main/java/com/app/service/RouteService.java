@@ -63,7 +63,7 @@ public class RouteService {
     public Page<RouteDto> getVehicleRoutes(String username, String licensePlate, Integer page) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return Page.empty();
-        Optional<Vehicle> vehicle = vehicleRepo.findByUserIdAndLicensePlate(user.get().getId(), licensePlate);
+        Optional<Vehicle> vehicle = vehicleRepo.findByLicensePlate(licensePlate);
         if (vehicle.isEmpty()) return Page.empty();
         Page<Route> routePage = routeRepo.findByVehicle(vehicle.get(), getPage(page));
         return routePage.map(routeConverter::convert);
@@ -82,7 +82,6 @@ public class RouteService {
     public RouteDto addRoute(String username, RouteDto routeDto) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return null;
-        routeDto.setUserId(user.get().getId());
         routeDto.setCreatedAt(Instant.now());
         routeDto.setStatus(RouteStatus.PLANNED);
         Route route = routeDtoConverter.convert(routeDto);

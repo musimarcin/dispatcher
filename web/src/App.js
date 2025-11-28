@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "./assets/AuthContext";
 import api from './assets/api'
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -11,12 +12,12 @@ import Navbar from './assets/Navbar';
 import ProtectedRoute from './assets/ProtectedRoute'
 import PublicRoute from './assets/PublicRoute'
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 import ToastMessage from "./assets/ToastMessage";
 
 function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-
+    const { user } = useContext(AuthContext);
     const [toast, setToast] = useState({ message: "", type: "info", show: false });
 
     const showToast = (message, type = "info") => {
@@ -24,26 +25,6 @@ function App() {
     };
 
     const hideToast = () => setToast(prev => ({ ...prev, show: false }));
-
-
-    useEffect(() => {
-        api.get("/auth/check")
-        .then(res => {
-            setIsLoggedIn(res.data)
-        })
-        .catch(() => setIsLoggedIn(false))
-        .finally(() => setIsLoading(false))
-    });
-
-    if (isLoading) {
-        return (
-            <div className="d-flex justify-content-center align-items-center vh-100">
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <>
@@ -54,40 +35,40 @@ function App() {
                 onClose={hideToast}
             />
             <Router>
-                <Navbar isLoggedIn={isLoggedIn}/>
+                <Navbar user={user}/>
                 <Routes>
                     <Route path="/" element={
-                        <ProtectedRoute isLoggedIn={isLoggedIn}>
+                        <ProtectedRoute user={user}>
                             <Dashboard showToast={showToast} />
                         </ProtectedRoute>
                     } />
                     <Route path="/login" element={
-                        <PublicRoute isLoggedIn={isLoggedIn}>
+                        <PublicRoute user={user}>
                             <Login showToast={showToast} />
                         </PublicRoute>
                     } />
                     <Route path="/register" element={
-                        <PublicRoute isLoggedIn={isLoggedIn}>
+                        <PublicRoute user={user}>
                             <Register showToast={showToast} />
                         </PublicRoute>
                     } />
                     <Route path="/settings" element={
-                        <ProtectedRoute isLoggedIn={isLoggedIn}>
+                        <ProtectedRoute user={user}>
                             <Settings showToast={showToast} />
                         </ProtectedRoute>
                     } />
                     <Route path="/vehicle" element={
-                        <ProtectedRoute isLoggedIn={isLoggedIn}>
+                        <ProtectedRoute user={user}>
                             <Vehicle showToast={showToast} />
                         </ProtectedRoute>
                     } />
                     <Route path="/route" element={
-                        <ProtectedRoute isLoggedIn={isLoggedIn}>
+                        <ProtectedRoute user={user}>
                             <RouteMap showToast={showToast} />
                         </ProtectedRoute>
                     } />
                     <Route path="*" element={
-                        <ProtectedRoute isLoggedIn={isLoggedIn}/>
+                        <ProtectedRoute user={user}/>
                     } />
                 </Routes>
             </Router>

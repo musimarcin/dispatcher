@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 
-function PublicRoute({ isLoggedIn, children }) {
-    if (isLoggedIn) {
+function PublicRoute({ user, children }) {
+    if (user) {
         //when logged in, redirect to dashboard
         return <Navigate to="/" replace />;
     }

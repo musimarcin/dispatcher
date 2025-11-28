@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../assets/AuthContext";
 import api from '../assets/api'
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Settings({showToast}) {
+
+    const { user } = useContext(AuthContext);
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [email, setEmail] = useState("");
@@ -14,32 +18,32 @@ function Settings({showToast}) {
     const [availableRoles, setAvailableRoles] = useState([]);
     const [isPopUp, setIsPopUp] = useState(false);
     const navigate = useNavigate();
+    const [users, setUsers] = useState([]);
+    const [selectedUser, setSelectedUser] = useState([]);
 
     useEffect(() => {
-        api.get("/user/roles")
+        api.get("/roles")
+        .then(response => {
+            if (!response.data.body) {
+                showToast(response.data.message, "error");
+                return;
+            }
+            setRoles(response.data.body);
+            setAvailableRoles(response.data.body)
+        }).catch(err => console.log(err));
+
+        if (user.roles.includes("ADMIN")) {
+            api.get("/user")
             .then(response => {
-                if (!response.data.body) {
-                    showToast(response.data.message, "error");
-                    return;
-                }
-                setRoles(response.data.body);
-                setAvailableRoles(response.data.body)
-            }).catch(err => console.log(err));
+            if (!response.data.body) {
+                showToast(response.data.message, "error");
+                return;
+            }
+            setUsers(response.data.body)
+            }).catch(err => console.log(err))
+        }
+
     }, []);
-
-    useEffect(() => {
-        api.get("/user/roles/me")
-            .then(response => {
-                const res = response.data.body;
-                if (res == null) {
-                    showToast(response.data.message, "error")
-                    return;
-                }
-                setUserRoles(res || []);
-                setAvailableRoles(roles.filter(role => !res.includes(role)));
-                setSelectedAvailableRoles([]);
-            }).catch(err => console.log(err));
-    }, [roles]);
 
     const handleUserRolesChange = (e) => {
         const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
@@ -87,7 +91,7 @@ function Settings({showToast}) {
     const removeRoles = async (e) => {
         e.preventDefault();
 
-        api.patch("/user/roles/remove",
+        api.patch("/roles/remove",
             { roles: selectedUserRoles }
         ).then(res => {
             const filtered = userRoles.filter(role => !selectedUserRoles.includes(role))
@@ -101,7 +105,7 @@ function Settings({showToast}) {
     const addRoles = async (e) => {
         e.preventDefault();
 
-        api.patch("/user/roles/add",
+        api.patch("/roles/add",
             { roles: selectedAvailableRoles }
         ).then(response => {
             setUserRoles(userRoles.concat(selectedAvailableRoles))
@@ -119,6 +123,31 @@ function Settings({showToast}) {
             navigate('/login');
         })
         .catch(err => showToast(err.response?.data.message, "error"));
+    }
+
+    const handleUserChange = (e) => {
+        const userId = e.target.value
+        if (!userId) {
+            setSelectedUser([]);
+            setUserRoles([]);
+            setAvailableRoles([]);
+            return;
+        }
+
+        const user = users.find(u => u.id === userId);
+        setSelectedUser(user);
+
+        api.get(`/roles/${user.id}`)
+            .then(response => {
+                const res = response.data.body;
+                if (res == null) {
+                    showToast(response.data.message, "error")
+                    return;
+                }
+                setUserRoles(res || []);
+                setAvailableRoles(roles.filter(role => !res.includes(role)));
+                setSelectedAvailableRoles([]);
+            }).catch(err => console.log(err));
     }
 
     return (
@@ -161,45 +190,7 @@ function Settings({showToast}) {
                 Change Email
             </button>
 
-            <div className="row mb-4">
-                <div className="col-md-6">
-                    <h4>User Roles</h4>
-                    <select
-                        className="form-select"
-                        multiple
-                        onChange={handleUserRolesChange}
-                        value={selectedUserRoles}
-                        size={5}
-                    >
-                        {userRoles.map((role) => (
-                            <option key={role} value={role}>{role}</option>
-                        ))}
-                    </select>
-                    <button className="btn btn-danger mt-2" onClick={removeRoles}>
-                        Remove Selected Roles
-                    </button>
-                </div>
-
-                <div className="col-md-6">
-                    <h4>Available Roles</h4>
-                    <select
-                        className="form-select"
-                        multiple
-                        onChange={handleAvailableRolesChange}
-                        value={selectedAvailableRoles}
-                        size={5}
-                    >
-                        {availableRoles.map((role) => (
-                            <option key={role} value={role}>{role}</option>
-                        ))}
-                    </select>
-                    <button className="btn btn-success mt-2" onClick={addRoles}>
-                        Add Selected Roles
-                    </button>
-                </div>
-            </div>
-
-            <button className="btn btn-outline-danger" onClick={() => setIsPopUp(true)}>
+            <button className="btn btn-outline-danger my-2" onClick={() => setIsPopUp(true)}>
                 Delete User
             </button>
 
@@ -238,6 +229,64 @@ function Settings({showToast}) {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {user.roles.includes("ADMIN") && (
+            <>
+                <div>
+                    <label htmlFor="user" className="form-label">Select User</label>
+                    <select
+                        id="user"
+                        className="form-select"
+                        value={selectedUser?.id || ""}
+                        onChange={handleUserChange}
+                    >
+                        <option value="">-- Choose User --</option>
+                            {users.map((u) => (
+                                <option key={u.id} value={u.id}>
+                                    {u.id}. {u.username}
+                                </option>
+                            ))}
+                    </select>
+                </div>
+                <div className="row mb-4">
+                    <div className="col-md-6">
+                        <h4>User Roles</h4>
+                        <select
+                            className="form-select"
+                            multiple
+                            onChange={handleUserRolesChange}
+                            value={selectedUserRoles}
+                            size={5}
+                        >
+                            {userRoles.map((role) => (
+                                <option key={role} value={role}>{role}</option>
+                            ))}
+                        </select>
+                        <button className="btn btn-danger mt-2" onClick={removeRoles}>
+                            Remove Selected Roles
+                        </button>
+                    </div>
+
+                    <div className="col-md-6">
+                        <h4>Available Roles</h4>
+                        <select
+                            className="form-select"
+                            multiple
+                            onChange={handleAvailableRolesChange}
+                            value={selectedAvailableRoles}
+                            size={5}
+                        >
+                            {availableRoles.map((role) => (
+                                <option key={role} value={role}>{role}</option>
+                            ))}
+                        </select>
+                        <button className="btn btn-success mt-2" onClick={addRoles}>
+                            Add Selected Roles
+                        </button>
+                    </div>
+                </div>
+            </>
             )}
         </div>
     );

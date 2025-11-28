@@ -46,8 +46,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/osrm/**", "/api/nominatim/**").permitAll()
-                    .requestMatchers("/api/auth/**", "/api/user/roles").permitAll()
-                    .requestMatchers("/api/user/**", "/api/vehicle/**", "/api/notifications/**", "/api/route/**", "/api/fuel/**").authenticated()
+                    .requestMatchers("/api/auth/**", "/api/roles").permitAll()
+                    .requestMatchers("/api/user/**", "/api/vehicle/**", "/api/notifications/**",
+                            "/api/route/**", "/api/fuel/**", "/api/roles/**").authenticated()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .anyRequest().denyAll()
             )
