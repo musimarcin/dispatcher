@@ -55,7 +55,8 @@ public class UserService {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return Set.of();
         Set<UserEntity> drivers = userRepo.getAllDrivers(Role.ROLE_DRIVER);
-        return drivers.stream().map(userInfo::convert).collect(Collectors.toSet());
+        return drivers.stream().filter(u -> !u.getRoles().contains(Role.ROLE_ADMIN))
+                .map(userInfo::convert).collect(Collectors.toSet());
     }
 
     public List<UserInfo> getAllUsers(String username) {

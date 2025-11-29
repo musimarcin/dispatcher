@@ -91,9 +91,10 @@ function Settings({showToast}) {
     const removeRoles = async (e) => {
         e.preventDefault();
 
-        api.patch("/roles/remove",
-            { roles: selectedUserRoles }
-        ).then(res => {
+        api.patch("/roles/remove", {
+            roles: selectedUserRoles,
+            username:  selectedUser.username
+        }).then(res => {
             const filtered = userRoles.filter(role => !selectedUserRoles.includes(role))
             setUserRoles(filtered)
             setAvailableRoles(availableRoles.concat(selectedUserRoles));
@@ -105,9 +106,10 @@ function Settings({showToast}) {
     const addRoles = async (e) => {
         e.preventDefault();
 
-        api.patch("/roles/add",
-            { roles: selectedAvailableRoles }
-        ).then(response => {
+        api.patch("/roles/add", {
+           roles: selectedAvailableRoles,
+           username:  selectedUser.username
+        }).then(response => {
             setUserRoles(userRoles.concat(selectedAvailableRoles))
             const filtered = availableRoles.filter(role => !selectedAvailableRoles.includes(role))
             setAvailableRoles(filtered);
@@ -134,7 +136,7 @@ function Settings({showToast}) {
             return;
         }
 
-        const user = users.find(u => u.id === userId);
+        const user = users.find(u => u.id == userId);
         setSelectedUser(user);
 
         api.get(`/roles/${user.id}`)

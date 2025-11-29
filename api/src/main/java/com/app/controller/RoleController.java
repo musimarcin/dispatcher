@@ -31,7 +31,7 @@ public class RoleController {
         if (request.roles().isEmpty())
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to get roles"));
 
-        if (!roleService.addRoles(username, request.roles()))
+        if (!roleService.addRoles(request.username(), request.roles()))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to add role"));
 
         String role = request.roles().toString();
@@ -47,7 +47,7 @@ public class RoleController {
         if (request.roles().isEmpty())
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to get roles"));
 
-        if (!roleService.removeRoles(username, request.roles()))
+        if (!roleService.removeRoles(request.username(), request.roles()))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to remove role"));
 
         String role = request.roles().toString();

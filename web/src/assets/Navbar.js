@@ -37,7 +37,7 @@ function Navbar({ user, showToast }) {
                                 <Link className="nav-link" to="/route">Routes</Link>
                             </li>
                         </ul>
-
+                        <span className="navbar-text me-2"> Welcome {user.username}! </span>
                         <button className="btn btn-outline-light" onClick={handleLogout}>Logout</button>
                     </div>
                 </>
