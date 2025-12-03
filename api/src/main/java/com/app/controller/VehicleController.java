@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -30,10 +31,10 @@ public class VehicleController {
         String username = securityUtil.getSessionUser();
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(username, page);
-        if (vehicleDtoPage.isEmpty())
+        Page<VehicleDto> vehicles = vehicleService.getAllVehicles(username, page);
+        if (vehicles.isEmpty())
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No vehicles found"));
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicles)));
     }
 
     @GetMapping(params = "id")
@@ -52,7 +53,7 @@ public class VehicleController {
         String username = securityUtil.getSessionUser();
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        Page<VehicleDto> vehicleDtoPage = vehicleService.getAllVehicles(driver, page);
+        Page<VehicleDto> vehicleDtoPage = vehicleService.getUsersVehicles(driver, page);
         if (vehicleDtoPage.isEmpty())
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No vehicles found"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", new VehiclesDto(vehicleDtoPage)));

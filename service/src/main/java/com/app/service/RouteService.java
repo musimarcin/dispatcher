@@ -53,7 +53,7 @@ public class RouteService {
         return PageRequest.of(pageNo, 10);
     }
 
-    public Page<RouteDto> getAllRoutes(String username, Integer page) {
+    public Page<RouteDto> getUsersRoutes(String username, Integer page) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return Page.empty();
         Page<Route> routePage = routeRepo.findByUserId(user.get().getId(), getPage(page));

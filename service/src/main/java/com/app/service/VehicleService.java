@@ -13,6 +13,7 @@ import com.app.utils.VehicleMapper;
 import com.app.utils.VehicleToVehicleDto;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,8 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class VehicleService {
@@ -51,6 +54,14 @@ public class VehicleService {
     }
 
     public Page<VehicleDto> getAllVehicles(String username, Integer page) {
+        Optional<UserEntity> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) return Page.empty();
+        List<Vehicle> vehicleList = vehicleRepo.findAll();
+        Page<Vehicle> vehicles = new PageImpl<>(vehicleList);
+        return vehicles.map(vehicleConverter::convert);
+    }
+
+    public Page<VehicleDto> getUsersVehicles(String username, Integer page) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return Page.empty();
         Page<Vehicle> vehiclePage = vehicleRepo.findByUserId(user.get().getId(), getPage(page));

@@ -69,7 +69,7 @@ public class VehicleControllerTests {
     @Test
     void givenLoggedInUser_whenGetAllVehicles_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(vehicleService.getAllVehicles(anyString(), anyInt())).willReturn(vehiclesDto);
+        given(vehicleService.getUsersVehicles(anyString(), anyInt())).willReturn(vehiclesDto);
 
         mockMvc.perform(get("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))

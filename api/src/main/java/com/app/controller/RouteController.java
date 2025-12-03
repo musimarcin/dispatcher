@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -27,11 +26,11 @@ public class RouteController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page) {
+    public ResponseEntity<?> getUsersRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page) {
         String username = securityUtil.getSessionUser();
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        Page<RouteDto> routePage = routeService.getAllRoutes(username, page);
+        Page<RouteDto> routePage = routeService.getUsersRoutes(username, page);
         if (routePage.isEmpty())
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No routes found"));
         return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routePage));

@@ -76,7 +76,7 @@ public class RouteControllerTests {
     @Test
     void givenLoggedInUser_whenGetAll_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.getAllRoutes(anyString(), anyInt())).willReturn(routesDto);
+        given(routeService.getUsersRoutes(anyString(), anyInt())).willReturn(routesDto);
 
         mockMvc.perform(get("/api/route")
                         .contentType(MediaType.APPLICATION_JSON))

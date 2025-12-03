@@ -83,12 +83,12 @@ public class RouteServiceTests {
     }
 
     @Test
-    void givenValidUser_whenGetAllRoutes_thenReturnPage() {
+    void givenValidUser_whenGetUsersRoutes_thenReturnPage() {
         given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
         given(routeRepo.findByUserId(anyLong(), any(Pageable.class))).willReturn(routes);
         given(routeConverter.convert(route)).willReturn(routeDto);
 
-        Page<RouteDto> result = routeService.getAllRoutes(userJohn.getUsername(), 0);
+        Page<RouteDto> result = routeService.getUsersRoutes(userJohn.getUsername(), 0);
 
         assertEquals(routeDtos.getContent().get(0).getId(), result.getContent().get(0).getId());
         assertEquals(routeDtos.getContent().get(0).getDistance(), result.getContent().get(0).getDistance());
@@ -96,10 +96,10 @@ public class RouteServiceTests {
     }
 
     @Test
-    void givenInvalidUser_whenGetAllRoutes_thenReturnEmptyPage() {
+    void givenInvalidUser_whenGetUsersRoutes_thenReturnEmptyPage() {
         given(userRepo.findByUsername(anyString())).willReturn(Optional.empty());
 
-        Page<RouteDto> result = routeService.getAllRoutes(userJohn.getUsername(), 0);
+        Page<RouteDto> result = routeService.getUsersRoutes(userJohn.getUsername(), 0);
 
         assertEquals(Page.empty(), result);
     }
@@ -128,7 +128,7 @@ public class RouteServiceTests {
     }
 
     @Test
-    void givenValidUserAndInvalidVehicle_whenGetAllRoutes_thenReturnEmptyPage() {
+    void givenValidUserAndInvalidVehicle_whenGetUsersRoutes_thenReturnEmptyPage() {
         given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
         given(vehicleRepo.findByLicensePlate(anyString())).willReturn(Optional.empty());
 

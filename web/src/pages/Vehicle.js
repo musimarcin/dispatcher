@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import api from "../assets/api";
 import { useNavigate } from "react-router-dom";
 import SearchVehicle from "../assets/SearchVehicle"
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { AuthContext } from "../assets/AuthContext";
 
 function Vehicle({showToast}) {
+
+    const { user } = useContext(AuthContext);
+
     const [vehicle, setVehicle] = useState({
         licensePlate: "",
         model: "",
@@ -45,6 +49,7 @@ function Vehicle({showToast}) {
 
     return (
         <>
+        {user.roles.includes("DRIVER") && (
         <div className="m-3">
             <h2 className="m-4">Add New Vehicle</h2>
             <div className="d-flex justify-content-between ms-4">
@@ -141,6 +146,7 @@ function Vehicle({showToast}) {
                 </form>
             </div>
         </div>
+        )}
 
         <div className="border rounded shadow m-5">
             <SearchVehicle showToast={showToast} />

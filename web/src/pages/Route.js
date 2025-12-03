@@ -50,7 +50,7 @@ function Route({showToast}) {
         mapRef.current = map;
 
         if (user.roles.includes("DRIVER")) {
-            api.get("/vehicle")
+            api.get(`/vehicle?driver=${user.username}`)
             .then(response => {
                 if (response.data.body == null) {
                     showToast(response.data.message, "error")

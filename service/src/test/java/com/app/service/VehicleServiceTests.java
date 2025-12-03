@@ -74,21 +74,21 @@ public class VehicleServiceTests {
     }
 
     @Test
-    void givenValidUser_whenGetAllVehicles_thenReturnPage() {
+    void givenValidUser_whenGetUsersVehicles_thenReturnPage() {
         given(userRepo.findByUsername(userJohn.getUsername())).willReturn(Optional.of(userJohn));
         given(vehicleRepo.findByUserId(userJohn.getId(), PageRequest.of(0, 10))).willReturn(vehicles);
         given(vehicleConverter.convert(vehicle)).willReturn(vehicleDto);
 
-        Page<VehicleDto> result = vehicleService.getAllVehicles(userJohn.getUsername(), 1);
+        Page<VehicleDto> result = vehicleService.getUsersVehicles(userJohn.getUsername(), 1);
 
         assertEquals(vehicleDtos, result);
     }
 
     @Test
-    void givenInValidUser_whenGetAllVehicles_thenReturnPage() {
+    void givenInValidUser_whenGetUsersVehicles_thenReturnPage() {
         given(userRepo.findByUsername(userJohn.getUsername())).willReturn(Optional.empty());
 
-        Page<VehicleDto> result = vehicleService.getAllVehicles(userJohn.getUsername(), 1);
+        Page<VehicleDto> result = vehicleService.getUsersVehicles(userJohn.getUsername(), 1);
 
         assertEquals(Page.empty(), result);
     }

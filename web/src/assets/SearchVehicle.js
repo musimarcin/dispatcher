@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import api from "./api"
+import { AuthContext } from "../assets/AuthContext";
 
 function SearchVehicle({showToast}) {
+
+    const { user } = useContext(AuthContext);
+
     const [search, setSearch] = useState({
         licensePlate: "",
         model: "",
@@ -18,21 +22,49 @@ function SearchVehicle({showToast}) {
 
     const [vehicles, setVehicles] = useState([]);
     const [page, setPage] = useState(0);
+    const [drivers, setDrivers] = useState([]);
+    const [vehiclesTemp, setVehiclesTemp] = useState([]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setSearch((prev) => ({ ...prev, [name]: value }));
     };
 
+//    useEffect(() => {
+//        const updatedVehicles = vehicles.map(v => {
+//            const driv = drivers.find(d => d.id === v.userId);
+//            v.userId = `${v.userId}. ${driv.username}`;
+//            return v;
+//        });
+//        setVehicles(updatedVehicles)
+//    }, [drivers, vehicles])
+
     const handleSearch = async (e) => {
         e.preventDefault();
+//        api.get('/user/drivers', search)
+//        .then((response) => {
+//            if (response.data.body == null) {
+//                showToast(response.data.message, "error")
+//                return;
+//            }
+//            setDrivers(response.data.body)
+//        }).catch((err) => console.log(err))
+//
+//        let request = '';
+//        if (user.roles.includes("DRIVER")) {
+//            const un = user.username;
+//            request = `&driver=${un}`;
+//        }
+//        const url = `/vehicle/search?page=${page}${request}`;
+
         api.post(`/vehicle/search?page=${page}`, search)
         .then((response) => {
-            if (response.data.body == null) {
+            const res = response.data.body.vehicleDtoList
+            if (res == null) {
                 showToast(response.data.message, "error")
                 return;
             }
-            setVehicles(response.data.body)
+            setVehicles(res);
         }).catch((err) => console.log(err))
     };
 
@@ -178,7 +210,7 @@ function SearchVehicle({showToast}) {
                 </button>
             </form>
 
-            {vehicles?.vehicleDtoList?.length > 0 && (
+            {vehicles?.length > 0 && (
                 <div>
                     <h4>Results:</h4>
                     <table className="table table-bordered">
@@ -191,11 +223,12 @@ function SearchVehicle({showToast}) {
                                 <th>Fuel Capacity</th>
                                 <th>Avg. Consumption</th>
                                 <th>Mileage</th>
+                                <th>Driver ID</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {vehicles.vehicleDtoList.map((v) => (
+                            {vehicles.map((v) => (
                                 <tr key={v.id}>
                                     <td>{v.id}</td>
                                     <td>{v.licensePlate}</td>
@@ -204,6 +237,7 @@ function SearchVehicle({showToast}) {
                                     <td>{v.fuelCapacity}</td>
                                     <td>{v.averageConsumption}</td>
                                     <td>{v.mileage}</td>
+                                    <td>{v.userId}</td>
                                     <td>
                                         <button className="btn btn-danger mt-2" onClick={() => removeVehicle(v.licensePlate)}>
                                             Delete Vehicle
