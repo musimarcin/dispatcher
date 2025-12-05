@@ -1,7 +1,6 @@
 package com.app.controller;
 
-
-import com.app.dto.RoleChangeRequest;
+import com.app.dto.requests.RoleChangeRequest;
 import com.app.security.SecurityUtil;
 import com.app.service.RoleService;
 import org.springframework.http.HttpStatus;
@@ -9,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/roles")
@@ -22,13 +22,18 @@ public class RoleController {
         this.roleService = roleService;
     }
 
+    @GetMapping
+    public ResponseEntity<?> getAllRoles() {
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", roleService.getAllRoles()));
+    }
+
     @PatchMapping("/add")
     public ResponseEntity<?> addRole(@RequestBody RoleChangeRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "You are not logged in to change user details"));
 
-        if (request.roles().isEmpty())
+        if (request.roles() == null || request.roles().isEmpty())
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to get roles"));
 
         if (!roleService.addRoles(request.username(), request.roles()))
@@ -44,7 +49,7 @@ public class RoleController {
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "You are not logged in to change user details"));
 
-        if (request.roles().isEmpty())
+        if (request.roles() == null || request.roles().isEmpty())
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to get roles"));
 
         if (!roleService.removeRoles(request.username(), request.roles()))
@@ -54,19 +59,15 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully removed role " + role));
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAllRoles() {
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", roleService.getAllRoles()));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserRoles(@PathVariable Long id) {
         String username = securityUtil.getSessionUser();
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        if (roleService.getUserRoles(id).isEmpty())
+        Set<String> userRoles = roleService.getUserRoles(id);
+        if (userRoles.isEmpty())
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No roles found"));
 
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", roleService.getUserRoles(id)));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", userRoles));
     }
 }

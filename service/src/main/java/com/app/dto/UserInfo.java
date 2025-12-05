@@ -16,6 +16,6 @@ public class UserInfo {
     public UserInfo(Long id, String username, Set<Role> roles) {
         this.id = id;
         this.username = username;
-        this.roles = roles.stream().map(String::valueOf).map(role -> role.substring(5)).collect(Collectors.toSet());
+        this.roles = roles.stream().map(String::valueOf).collect(Collectors.toSet());
     }
 }

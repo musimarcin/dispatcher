@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.dto.RouteDto;
 import com.app.dto.VehicleDto;
+import com.app.dto.requests.RouteStatusRequest;
 import com.app.model.RouteStatus;
 import com.app.security.CustomUserDetailService;
 import com.app.security.JWTGenerator;
@@ -74,34 +75,11 @@ public class RouteControllerTests {
     }
 
     @Test
-    void givenLoggedInUser_whenGetAll_thenReturnOk() throws Exception {
-        given(securityUtil.getSessionUser()).willReturn("John");
-        given(routeService.getUsersRoutes(anyString(), anyInt())).willReturn(routesDto);
-
-        mockMvc.perform(get("/api/route")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.routeDtoList[0].distance").value("200"))
-                .andExpect(jsonPath("$.routeDtoList[0].estimatedTime").value("30"))
-                .andExpect(jsonPath("$.routeDtoList[0].userId").value("2"));
-    }
-
-    @Test
-    void givenNonLoggedInUser_whenGetAll_thenReturnUnauthorized() throws Exception {
-        given(securityUtil.getSessionUser()).willReturn(null);
-
-        mockMvc.perform(get("/api/route")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("Not logged in"));
-    }
-
-    @Test
     void givenLoggedInUser_whenGetVehicleRoutes_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
         given(routeService.getVehicleRoutes(anyString(), anyString(), anyInt())).willReturn(routesDto);
 
-        mockMvc.perform(get("/api/route/vehicle")
+        mockMvc.perform(get("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("licensePlate", "1234"))
                 .andExpect(status().isOk())
@@ -115,7 +93,7 @@ public class RouteControllerTests {
         given(securityUtil.getSessionUser()).willReturn("John");
         given(routeService.getVehicleRoutes(anyString(), anyString(), anyInt())).willReturn(Page.empty());
 
-        mockMvc.perform(get("/api/route/vehicle")
+        mockMvc.perform(get("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("licensePlate", "9999"))
                 .andExpect(status().isOk())
@@ -126,7 +104,7 @@ public class RouteControllerTests {
     void givenNonLoggedInUser_whenGetVehicleRoutes_thenReturnUnauthorized() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
-        mockMvc.perform(get("/api/route/vehicle")
+        mockMvc.perform(get("/api/route")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Not logged in"));
@@ -162,8 +140,9 @@ public class RouteControllerTests {
     void givenNonLoggedInUser_whenSearchRoutes_thenReturnUnauthorized() throws Exception {
         given(securityUtil.getSessionUser()).willReturn(null);
 
-        mockMvc.perform(get("/api/route/vehicle")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/api/route/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("licensePlate", "9999"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Not logged in"));
     }
@@ -239,6 +218,41 @@ public class RouteControllerTests {
         mockMvc.perform(delete("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("id", "1"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Not logged in"));
+    }
+
+    @Test
+    void givenLoggedInUser_whenEditRoute_thenReturnOk() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(routeService.editRoute(anyString(), any(RouteStatusRequest.class))).willReturn(true);
+
+        mockMvc.perform(put("/api/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("status", String.valueOf(RouteStatus.FINISHED)))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Successful route update"));
+    }
+
+    @Test
+    void givenLoggedInUserAndInvalidRoute_whenEditRoute_thenReturnBadRequest() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(routeService.editRoute(anyString(), any(RouteStatusRequest.class))).willReturn(false);
+
+        mockMvc.perform(put("/api/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("wrong", "field"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Unsuccessful route update"));
+    }
+
+    @Test
+    void givenNonLoggedInUser_whenEditRoute_thenReturnUnauthorized() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(null);
+
+        mockMvc.perform(put("/api/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("status", "FINISHED"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Not logged in"));
     }

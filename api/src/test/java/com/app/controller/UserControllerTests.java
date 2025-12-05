@@ -1,6 +1,8 @@
 package com.app.controller;
 
 import com.app.dto.UserDto;
+import com.app.dto.UserInfo;
+import com.app.model.Role;
 import com.app.security.CustomUserDetailService;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
@@ -19,7 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import jakarta.servlet.http.Cookie;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -47,13 +49,18 @@ public class UserControllerTests {
 
     private UserDto userDtoJohn;
     private UserDto userDtoAdam;
+    private UserDto userDtoAdmin;
+    private UserInfo userInfoJohn;
+    private UserInfo userInfoAdam;
 
     @BeforeEach
     void setUp() {
-        userDtoJohn = UserDto.builder().username("John").password("johnsmith").email("john@johnsmith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
-        userDtoAdam = UserDto.builder().username("Adam").password("adamadam").email("adam@adamadam").roles(new HashSet<>(Set.of("DRIVER"))).build();
+        userDtoJohn = UserDto.builder().username("John").password("johnsmith").email("john@johnsmith").roles(Set.of("DISPATCHER")).build();
+        userDtoAdam = UserDto.builder().username("Adam").password("adamadam").email("adam@adamadam").roles(Set.of("DRIVER")).build();
+        userDtoAdmin = UserDto.builder().username("Admin").password("adminadmin").email("admin@adminadmin").roles(Set.of("ADMIN")).build();
+        userInfoJohn = new UserInfo(1L, "John", Set.of(Role.DISPATCHER));
+        userInfoAdam = new UserInfo(1L, "John", Set.of(Role.DRIVER));
     }
-
 
     @Test
     void givenLoggedInUser_whenDelete_thenReturnOk() throws Exception {
@@ -224,6 +231,84 @@ public class UserControllerTests {
                         .content("{\"newEmail\":\"\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Email cannot be empty"));
+    }
+
+    @Test
+    void givenLoggedInUser_whenGetAllDrivers_thenReturnOk() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(userDtoAdmin.getUsername());
+        given(userService.getAllDrivers(anyString())).willReturn(Set.of(userInfoAdam));
+
+        mockMvc.perform(get("/api/user/drivers")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.body[0].username").value(userInfoAdam.getUsername()));
+    }
+
+    @Test
+    void givenLoggedInNotAdmin_whenGetAllDriver_thenReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/user/drivers")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void givenLoggedInUser_whenGetAllDrivers_thenReturn() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(null);
+
+        mockMvc.perform(get("/api/user/drivers")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Not logged in"));
+    }
+
+    @Test
+    void givenLoggedInUserWithoutDrivers_whenGetAllDrivers_thenReturnOk() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(userDtoAdmin.getUsername());
+        given(userService.getAllDrivers(anyString())).willReturn(Set.of());
+
+        mockMvc.perform(get("/api/user/drivers")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Drivers not found"));
+    }
+
+    @Test
+    void givenLoggedInUser_whenGetAllUsers_thenReturnOk() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(userDtoAdmin.getUsername());
+        given(userService.getAllUsers(anyString())).willReturn(List.of(userInfoJohn, userInfoAdam));
+
+        mockMvc.perform(get("/api/user")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.body[0].username").value(userInfoJohn.getUsername()));
+    }
+
+    @Test
+    void givenLoggedInUserNotAdmin_whenGetAllUsers_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/api/user")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void givenLoggedInUserWithoutUsers_whenGetAllUsers_thenReturnOk() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(userDtoAdmin.getUsername());
+        given(userService.getAllUsers(anyString())).willReturn(List.of());
+
+        mockMvc.perform(get("/api/user")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Users not found"));
+    }
+
+    @Test
+    void givenNonLoggedIn_whenGetAllUsers_thenReturnUnauthorized() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(null);
+
+        mockMvc.perform(get("/api/user")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Not logged in"));
     }
 
 

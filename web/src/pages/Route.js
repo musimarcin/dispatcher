@@ -228,7 +228,7 @@ function Route({showToast}) {
         const vehicle = vehicles.find(v => v.licensePlate === vehiclePlate);
         setSelectedVehicle(vehicle);
 
-        api.get(`/route/vehicle?licensePlate=${vehiclePlate}`)
+        api.get(`/route?licensePlate=${vehiclePlate}`)
             .then(response => {
                 if (response.data.body == null) {
                     showToast(response.data.message, "error")

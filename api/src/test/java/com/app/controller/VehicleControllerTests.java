@@ -1,6 +1,7 @@
 package com.app.controller;
 
 import com.app.dto.VehicleDto;
+import com.app.dto.requests.VehicleUpdateRequest;
 import com.app.security.CustomUserDetailService;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
@@ -69,7 +70,7 @@ public class VehicleControllerTests {
     @Test
     void givenLoggedInUser_whenGetAllVehicles_thenReturnOk() throws Exception {
         given(securityUtil.getSessionUser()).willReturn("John");
-        given(vehicleService.getUsersVehicles(anyString(), anyInt())).willReturn(vehiclesDto);
+        given(vehicleService.getAllVehicles(anyString(), anyInt())).willReturn(vehiclesDto);
 
         mockMvc.perform(get("/api/vehicle")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -108,6 +109,18 @@ public class VehicleControllerTests {
                         .content(objectMapper.writeValueAsString(Map.of("licensePlate", "1234"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Not logged in"));
+    }
+
+    @Test
+    void givenNonLoggedInUserWithoutVehicles_whenSearchVehicles_thenReturnUnauthorized() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(vehicleService.searchVehicles(anyString(), anyInt(), anyMap())).willReturn(Page.empty());
+
+        mockMvc.perform(post("/api/vehicle/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("licensePlate", "1234"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("No vehicles found"));
     }
 
     @Test
@@ -177,6 +190,41 @@ public class VehicleControllerTests {
 
         mockMvc.perform(delete("/api/vehicle")
                         .param("licensePlate", "9999"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Not logged in"));
+    }
+
+    @Test
+    void givenLoggedInUser_whenEditVehicleAfterRoute_thenReturnOk() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(vehicleService.editVehicleAfterRoute(anyString(), any(VehicleUpdateRequest.class))).willReturn(true);
+
+        mockMvc.perform(put("/api/vehicle/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("mileage", "20"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Successfully updated vehicle"));
+    }
+
+    @Test
+    void givenLoggedInUserAndInvalidVehicle_whenEditVehicleAfterRoute_thenReturnBadRequest() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(vehicleService.editVehicleAfterRoute(anyString(), any(VehicleUpdateRequest.class))).willReturn(false);
+
+        mockMvc.perform(put("/api/vehicle/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("mileage", "20"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Unsuccessful vehicle update"));
+    }
+
+    @Test
+    void givenNonLoggedInUser_whenEditVehicleAfterRoute_thenReturnUnauthorized() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn(null);
+
+        mockMvc.perform(put("/api/vehicle/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("mileage", "20"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Not logged in"));
     }

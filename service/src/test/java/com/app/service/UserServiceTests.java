@@ -1,11 +1,13 @@
 package com.app.service;
 
+import com.app.dto.UserInfo;
 import com.app.utils.UserDtoToUser;
 import com.app.utils.UserToUserDto;
 import com.app.dto.UserDto;
 import com.app.model.Role;
 import com.app.model.UserEntity;
 import com.app.repository.UserRepo;
+import com.app.utils.UserToUserInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,8 @@ public class UserServiceTests {
     private UserDtoToUser userDtoConverter;
     @Mock
     private UserToUserDto userConverter;
+    @Mock
+    private UserToUserInfo userInfoConverter;
 
     @InjectMocks
     private UserService userService;
@@ -40,13 +44,19 @@ public class UserServiceTests {
     private UserEntity userJohn;
     private UserDto userDtoAdam;
     private UserEntity userAdam;
+    private UserInfo userInfoJohn;
+    private UserInfo userInfoAdam;
+    private UserEntity userAdmin;
 
     @BeforeEach
     void setUp() {
-        userDtoJohn = UserDto.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
-        userDtoAdam = UserDto.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("DRIVER"))).build();
-        userAdam = UserEntity.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of(Role.ROLE_DRIVER))).build();
-        userJohn = UserEntity.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of(Role.ROLE_DISPATCHER))).build();
+        userDtoJohn = UserDto.builder().id(1L).username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
+        userDtoAdam = UserDto.builder().id(2L).username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("DRIVER"))).build();
+        userAdam = UserEntity.builder().id(2L).username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of(Role.DRIVER))).build();
+        userJohn = UserEntity.builder().id(1L).username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of(Role.DISPATCHER))).build();
+        userInfoJohn = new UserInfo(1L, "John", Set.of(Role.DISPATCHER));
+        userInfoAdam = new UserInfo(1L, "Adam", Set.of(Role.DRIVER));
+        userAdmin = UserEntity.builder().id(3L).username("Admin").password("adminadmin").email("admin@adminadmin").roles((new HashSet<>(Set.of(Role.ADMIN)))).build();
     }
 
     @Test
@@ -149,4 +159,52 @@ public class UserServiceTests {
         assertFalse(result);
     }
 
+    @Test
+    void givenValidUser_whenGetAllDrivers_thenReturnDriversSet() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
+        given(userRepo.getAllDrivers(any(Role.class))).willReturn(Set.of(userAdam));
+        given(userInfoConverter.convert(userAdam)).willReturn(userInfoAdam);
+
+        Set<UserInfo> result = userService.getAllDrivers(userJohn.getUsername());
+
+        assertEquals(Set.of(userInfoAdam), result);
+    }
+
+    @Test
+    void givenInvalidUser_whenGetAllDrivers_thenReturnEmptySet() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.empty());
+
+        Set<UserInfo> result = userService.getAllDrivers(userJohn.getUsername());
+
+        assertEquals(Set.of(), result);
+    }
+
+    @Test
+    void givenValidUser_whenGetAllUsers_thenReturnUsersList() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userAdmin));
+        given(userRepo.findAll()).willReturn(List.of(userJohn));
+        given(userInfoConverter.convert(userJohn)).willReturn(userInfoJohn);
+
+        List<UserInfo> result = userService.getAllUsers(userAdmin.getUsername());
+
+        assertEquals(List.of(userInfoJohn), result);
+    }
+
+    @Test
+    void givenInvalidUser_whenGetAllUsers_thenReturnEmptyList() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.empty());
+
+        List<UserInfo> result = userService.getAllUsers(userJohn.getUsername());
+
+        assertEquals(List.of(), result);
+    }
+
+    @Test
+    void givenUnauthorizedUser_whenGetAllUsers_thenReturnEmptyList() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
+
+        List<UserInfo> result = userService.getAllUsers(userJohn.getUsername());
+
+        assertEquals(List.of(), result);
+    }
 }

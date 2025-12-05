@@ -21,6 +21,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 
@@ -42,14 +43,12 @@ public class RoleServiceTests {
     private UserDto userDtoJohn;
     private UserEntity userJohn;
     private UserDto userDtoAdam;
-    private UserEntity userAdam;
 
     @BeforeEach
     void setUp() {
-        userDtoJohn = UserDto.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
-        userDtoAdam = UserDto.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of("DRIVER"))).build();
-        userAdam = UserEntity.builder().username("Adam").password("adam").email("adam@adam").roles(new HashSet<>(Set.of(Role.ROLE_DRIVER))).build();
-        userJohn = UserEntity.builder().username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of(Role.ROLE_DISPATCHER))).build();
+        userDtoJohn = UserDto.builder().id(1L).username("John").password("smithsmith").email("john@smithsmith").roles(new HashSet<>(Set.of("DISPATCHER"))).build();
+        userDtoAdam = UserDto.builder().id(2L).username("Adam").password("adamadam").email("adam@adamadam").roles(new HashSet<>(Set.of("DRIVER"))).build();
+        userJohn = UserEntity.builder().id(1L).username("John").password("smithsmith").email("john@smithsmith").roles(new HashSet<>(Set.of(Role.DISPATCHER))).build();
     }
 
     @Test
@@ -59,7 +58,7 @@ public class RoleServiceTests {
         boolean result = roleService.addRoles(userDtoJohn.getUsername(), userDtoAdam.getRoles());
 
         assertTrue(result);
-        assertEquals(userJohn.getRoles(), Set.of(Role.ROLE_DRIVER, Role.ROLE_DISPATCHER));
+        assertEquals(userJohn.getRoles(), Set.of(Role.DRIVER, Role.DISPATCHER));
     }
 
     @Test
@@ -110,7 +109,7 @@ public class RoleServiceTests {
 
     @Test
     void givenValidUser_whenGetUserRoles_thenReturnSet() {
-        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
+        given(userRepo.findById(anyLong())).willReturn(Optional.of(userJohn));
 
         Set<String> result = roleService.getUserRoles(userDtoJohn.getId());
 
@@ -118,9 +117,7 @@ public class RoleServiceTests {
     }
 
     @Test
-    void givenInvalidUser_whenGetUserRoles_thenReturnNull() {
-        given(userRepo.findByUsername(anyString())).willReturn(Optional.empty());
-
+    void givenInvalidUser_whenGetUserRoles_thenReturnEmpty() {
         Set<String> result = roleService.getUserRoles(userDtoJohn.getId());
 
         assertEquals(Set.of(), result);

@@ -25,18 +25,10 @@ public class RoleService {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return false;
 
-        int changes = 0;
         Set<Role> roles = newRoles.stream()
-                .map(role -> "ROLE_" + role)
-                .map(Role::valueOf)
-                .collect(Collectors.toSet());
-        for (Role r : roles) {
-            if (!user.get().getRoles().contains(r)) {
-                user.get().getRoles().add(r);
-                changes++;
-            }
-        }
-        return changes > 0;
+                .map(Role::valueOf).collect(Collectors.toSet());
+
+        return user.get().getRoles().addAll(roles);
     }
 
     @Transactional
@@ -45,30 +37,19 @@ public class RoleService {
         if (user.isEmpty()) return false;
 
         Set<Role> roles = newRoles.stream()
-                .map(role -> "ROLE_" + role)
-                .map(Role::valueOf)
-                .collect(Collectors.toSet());
-        int changes = 0;
-        for (Role r : roles) {
-            if (user.get().getRoles().contains(r)) {
-                user.get().getRoles().remove(r);
-                changes++;
-            }
-        }
-        return changes > 0;
+                .map(Role::valueOf).collect(Collectors.toSet());
+
+        return user.get().getRoles().removeAll(roles);
     }
 
     public Set<String> getAllRoles() {
-        return Arrays.stream(Role.values()).map(String::valueOf)
-                .map(role -> role.substring(5)).collect(Collectors.toSet());
+        return Arrays.stream(Role.values()).map(String::valueOf).collect(Collectors.toSet());
     }
 
     public Set<String> getUserRoles(Long id) {
         Optional<UserEntity> user = userRepo.findById(id);
         if (user.isEmpty()) return Set.of();
-
         Set<Role> roles = user.get().getRoles();
-        return roles.stream().map(String::valueOf)
-                .map(role -> role.substring(5)).collect(Collectors.toSet());
+        return roles.stream().map(String::valueOf).collect(Collectors.toSet());
     }
 }

@@ -1,5 +1,6 @@
 package com.app.security;
 
+import com.app.model.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -37,7 +38,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, HttpFirewall firewall) throws Exception {
-
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -45,11 +45,11 @@ public class SecurityConfig {
             .sessionManagement(ses -> ses.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .requestMatchers("/osrm/**", "/api/nominatim/**").permitAll()
-                    .requestMatchers("/api/auth/**", "/api/roles").permitAll()
+                    .requestMatchers("/osrm/**", "/api/nominatim/**", "/api/auth/**", "/api/roles/**").permitAll()
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers("/api/user/**", "/api/vehicle/**", "/api/notifications/**",
-                            "/api/route/**", "/api/fuel/**", "/api/roles/**").authenticated()
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                            "/api/route/**", "/api/fuel/**").authenticated()
+                    .requestMatchers("/api/admin").hasRole(String.valueOf(Role.ADMIN))
                     .anyRequest().denyAll()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

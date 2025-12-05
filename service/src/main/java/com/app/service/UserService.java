@@ -23,22 +23,19 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserDtoToUser userDtoConverter;
     private final UserToUserDto userConverter;
-    private final UserToUserInfo userInfo;
+    private final UserToUserInfo userInfoConverter;
 
     public UserService(UserRepo userRepo, PasswordEncoder passwordEncoder, UserDtoToUser userDtoConverter, UserToUserDto userConverter, UserToUserInfo userInfo) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.userDtoConverter = userDtoConverter;
         this.userConverter = userConverter;
-        this.userInfo = userInfo;
-    }
-
-    private boolean checkUserAndEmail(String username, String email) {
-        return userRepo.existsByUsername(username) && userRepo.existsByEmail(email);
+        this.userInfoConverter = userInfo;
     }
 
     public UserDto createUser(UserDto userDto) {
-        if (checkUserAndEmail(userDto.getUsername(), userDto.getEmail())) return null;
+        if (userRepo.existsByUsername(userDto.getUsername())) return null;
+        if (userRepo.existsByEmail(userDto.getEmail())) return null;
         userDto.setRegistered(Instant.now());
         UserEntity user = userDtoConverter.convert(userDto);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -48,23 +45,23 @@ public class UserService {
 
     public UserInfo getUserInfo(String username) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
-        return user.map(userInfo::convert).orElse(null);
+        return user.map(userInfoConverter::convert).orElse(null);
     }
 
     public Set<UserInfo> getAllDrivers(String username) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return Set.of();
-        Set<UserEntity> drivers = userRepo.getAllDrivers(Role.ROLE_DRIVER);
-        return drivers.stream().filter(u -> !u.getRoles().contains(Role.ROLE_ADMIN))
-                .map(userInfo::convert).collect(Collectors.toSet());
+        Set<UserEntity> drivers = userRepo.getAllDrivers(Role.DRIVER);
+        return drivers.stream().filter(u -> !u.getRoles().contains(Role.ADMIN))
+                .map(userInfoConverter::convert).collect(Collectors.toSet());
     }
 
     public List<UserInfo> getAllUsers(String username) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
-        if (user.isEmpty()) return List.of();
-        if (!user.get().getRoles().contains(Role.ROLE_ADMIN)) return List.of();
+        if (user.isEmpty() || !user.get().getRoles().contains(Role.ADMIN)) return List.of();
+        if (!user.get().getRoles().contains(Role.ADMIN)) return List.of();
         List<UserEntity> users = userRepo.findAll();
-        return users.stream().map(userInfo::convert).collect(Collectors.toList());
+        return users.stream().map(userInfoConverter::convert).collect(Collectors.toList());
     }
 
     @Transactional

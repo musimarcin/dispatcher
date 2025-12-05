@@ -59,12 +59,11 @@ function SearchVehicle({showToast}) {
 
         api.post(`/vehicle/search?page=${page}`, search)
         .then((response) => {
-            const res = response.data.body.vehicleDtoList
-            if (res == null) {
+            if (response.data.body == null) {
                 showToast(response.data.message, "error")
                 return;
             }
-            setVehicles(res);
+            setVehicles(response.data.body.vehicleDtoList);
         }).catch((err) => console.log(err))
     };
 

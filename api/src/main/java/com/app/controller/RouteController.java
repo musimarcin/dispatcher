@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.dto.RouteDto;
 import com.app.dto.RoutesDto;
+import com.app.dto.requests.RouteStatusRequest;
 import com.app.security.SecurityUtil;
 import com.app.service.RouteService;
 import jakarta.validation.Valid;
@@ -26,17 +27,6 @@ public class RouteController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getUsersRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page) {
-        String username = securityUtil.getSessionUser();
-        if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        Page<RouteDto> routePage = routeService.getUsersRoutes(username, page);
-        if (routePage.isEmpty())
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "No routes found"));
-        return ResponseEntity.status(HttpStatus.OK).body(new RoutesDto(routePage));
-    }
-
-    @GetMapping("/vehicle")
     public ResponseEntity<?> getVehicleRoutes(@RequestParam(name = "page", defaultValue = "1") Integer page,
                                       @RequestParam(name = "licensePlate", defaultValue = "") String licensePlate) {
         String username = securityUtil.getSessionUser();
@@ -82,11 +72,11 @@ public class RouteController {
     }
 
     @PutMapping
-    public ResponseEntity<?> editRoute(@RequestBody RouteDto routeDto) {
+    public ResponseEntity<?> editRoute(@RequestBody @Valid RouteStatusRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        if (!routeService.editRoute(securityUtil.getSessionUser(), routeDto))
+        if (!routeService.editRoute(securityUtil.getSessionUser(), request))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Unsuccessful route update"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successful route update"));
     }

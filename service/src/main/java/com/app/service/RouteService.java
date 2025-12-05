@@ -1,6 +1,7 @@
 package com.app.service;
 
 import com.app.dto.RouteDto;
+import com.app.dto.requests.RouteStatusRequest;
 import com.app.events.EventType;
 import com.app.events.RouteEvent;
 import com.app.model.Route;
@@ -12,7 +13,6 @@ import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
 import com.app.specifications.RouteSpecifications;
 import com.app.utils.RouteDtoToRoute;
-import com.app.utils.RouteMapper;
 import com.app.utils.RouteToRouteDto;
 import jakarta.transaction.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,9 +35,8 @@ public class RouteService {
     private final RouteToRouteDto routeConverter;
     private final RouteDtoToRoute routeDtoConverter;
     private final RouteSpecifications routeSpecifications;
-    private final RouteMapper routeMapper;
 
-    public RouteService(RouteRepo routeRepo, UserRepo userRepo, VehicleRepo vehicleRepo, ApplicationEventPublisher eventPublisher, RouteToRouteDto routeConverter, RouteDtoToRoute routeDtoConverter, RouteSpecifications routeSpecifications, RouteMapper routeMapper) {
+    public RouteService(RouteRepo routeRepo, UserRepo userRepo, VehicleRepo vehicleRepo, ApplicationEventPublisher eventPublisher, RouteToRouteDto routeConverter, RouteDtoToRoute routeDtoConverter, RouteSpecifications routeSpecifications) {
         this.routeRepo = routeRepo;
         this.userRepo = userRepo;
         this.vehicleRepo = vehicleRepo;
@@ -45,7 +44,6 @@ public class RouteService {
         this.routeConverter = routeConverter;
         this.routeDtoConverter = routeDtoConverter;
         this.routeSpecifications = routeSpecifications;
-        this.routeMapper = routeMapper;
     }
 
     private Pageable getPage(Integer page) {
@@ -114,12 +112,12 @@ public class RouteService {
     }
 
     @Transactional
-    public boolean editRoute(String username, RouteDto routeDto) {
+    public boolean editRoute(String username, RouteStatusRequest request) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return false;
-        Optional<Route> route = routeRepo.findById(routeDto.getId());
+        Optional<Route> route = routeRepo.findById(request.getId());
         if (route.isEmpty()) return false;
-        routeMapper.update(route.get(), routeDto);
+        route.get().setStatus(request.getStatus());
         routeRepo.save(route.get());
         return true;
     }

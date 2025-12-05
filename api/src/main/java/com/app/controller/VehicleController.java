@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.dto.VehicleDto;
 import com.app.dto.VehiclesDto;
+import com.app.dto.requests.VehicleUpdateRequest;
 import com.app.security.SecurityUtil;
 import com.app.service.VehicleService;
 import jakarta.validation.Valid;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -90,11 +90,11 @@ public class VehicleController {
     }
 
     @PutMapping("/route")
-    public ResponseEntity<?> editVehicleAfterRoute(@RequestBody VehicleDto vehicleDto) {
+    public ResponseEntity<?> editVehicleAfterRoute(@RequestBody @Valid VehicleUpdateRequest request) {
         String username = securityUtil.getSessionUser();
         if (username == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
-        if (!vehicleService.editVehicleAfterRoute(username, vehicleDto))
+        if (!vehicleService.editVehicleAfterRoute(username, request))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Unsuccessful vehicle update"));
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully updated vehicle"));
     }

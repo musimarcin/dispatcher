@@ -1,5 +1,6 @@
 package com.app.service;
 
+import com.app.dto.requests.VehicleUpdateRequest;
 import com.app.utils.VehicleDtoToVehicle;
 import com.app.utils.VehicleToVehicleDto;
 import com.app.dto.VehicleDto;
@@ -56,21 +57,23 @@ public class VehicleServiceTests {
     private Page<VehicleDto> vehicleDtos;
     private UserEntity userJohn;
     private HashMap<String, String> searchCriteria;
+    private VehicleUpdateRequest vehicleRequest;
 
     @BeforeEach
     void setUp() {
         vehicle = Vehicle.builder().id(1L).licensePlate("1234").model("test_model")
                 .manufacturer("test_manufacturer").productionYear(1999).fuelCapacity(new BigDecimal(2))
-                .averageConsumption(new BigDecimal(3)).mileage(4).lastMaintenance(new Date())
+                .averageConsumption(new BigDecimal(3)).mileage(4).routeRecords(5).lastMaintenance(new Date())
                 .createdAt(Instant.now()).userId(2L).build();
         vehicleDto = VehicleDto.builder().id(1L).licensePlate("1234").model("test_model")
                 .manufacturer("test_manufacturer").productionYear(1999).fuelCapacity(new BigDecimal(2))
-                .averageConsumption(new BigDecimal(3)).mileage(4).lastMaintenance(new Date())
+                .averageConsumption(new BigDecimal(3)).mileage(4).routeRecords(5).lastMaintenance(new Date())
                 .createdAt(Instant.now()).userId(2L).build();
         vehicles = new PageImpl<>(List.of(vehicle));
         vehicleDtos = new PageImpl<>(List.of(vehicleDto));
-        userJohn = UserEntity.builder().id(2L).username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of(Role.ROLE_DISPATCHER))).build();
+        userJohn = UserEntity.builder().id(2L).username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of(Role.DISPATCHER))).build();
         searchCriteria = new HashMap<>(Map.of("licensePlate", "1234"));
+        vehicleRequest = new VehicleUpdateRequest(1L, new BigDecimal(5), 5);
     }
 
     @Test
@@ -175,7 +178,35 @@ public class VehicleServiceTests {
         assertFalse(result);
     }
 
+    @Test
+    void givenValidUser_whenEditAfterRoute_thenReturnTrue() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
+        given(vehicleRepo.findById(anyLong())).willReturn(Optional.of(vehicle));
+        Integer oldMileage = vehicle.getMileage();
 
+        boolean result = vehicleService.editVehicleAfterRoute(userJohn.getUsername(), vehicleRequest);
 
+        assertTrue(result);
+        assertEquals(oldMileage + vehicleRequest.getMileage(), vehicle.getMileage());
+    }
+
+    @Test
+    void givenInvalidUser_whenEditAfterRoute_thenReturnFalse() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
+
+        boolean result = vehicleService.editVehicleAfterRoute(userJohn.getUsername(), vehicleRequest);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void givenValidUserAndInvalidVehicle_whenEditAfterRoute_thenReturnFalse() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
+        given(vehicleRepo.findById(anyLong())).willReturn(Optional.empty());
+
+        boolean result = vehicleService.editVehicleAfterRoute(userJohn.getUsername(), vehicleRequest);
+
+        assertFalse(result);
+    }
 
 }

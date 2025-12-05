@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +47,7 @@ public class NotificationServiceTests {
     @BeforeEach
     void setUp() {
         userJohn = UserEntity.builder().id(2L).username("John").password("smith").email("john@smith")
-                .roles(new HashSet<>(Set.of(Role.ROLE_DISPATCHER))).build();
+                .roles(Set.of(Role.DISPATCHER)).build();
         notification = Notification.builder().id(1L).message("test").isRead(false).createdAt(Instant.now()).userId(2L).build();
         notificationDto = NotificationDto.builder().id(1L).message("test").isRead(false).createdAt(Instant.now()).userId(2L).build();
         notifications = new PageImpl<>(List.of(notification));

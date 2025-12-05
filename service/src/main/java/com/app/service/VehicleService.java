@@ -1,6 +1,7 @@
 package com.app.service;
 
 import com.app.dto.VehicleDto;
+import com.app.dto.requests.VehicleUpdateRequest;
 import com.app.events.EventType;
 import com.app.events.VehicleEvent;
 import com.app.model.UserEntity;
@@ -9,7 +10,6 @@ import com.app.repository.UserRepo;
 import com.app.repository.VehicleRepo;
 import com.app.specifications.VehicleSpecifications;
 import com.app.utils.VehicleDtoToVehicle;
-import com.app.utils.VehicleMapper;
 import com.app.utils.VehicleToVehicleDto;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class VehicleService {
@@ -36,16 +35,14 @@ public class VehicleService {
     private final VehicleToVehicleDto vehicleConverter;
     private final VehicleDtoToVehicle vehicleDtoConverter;
     private final VehicleSpecifications vehicleSpecifications;
-    private final VehicleMapper vehicleMapper;
 
-    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo, ApplicationEventPublisher eventPublisher, VehicleToVehicleDto vehicleConverter, VehicleDtoToVehicle vehicleDtoConverter, VehicleSpecifications vehicleSpecifications, VehicleMapper vehicleMapper) {
+    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo, ApplicationEventPublisher eventPublisher, VehicleToVehicleDto vehicleConverter, VehicleDtoToVehicle vehicleDtoConverter, VehicleSpecifications vehicleSpecifications) {
         this.vehicleRepo = vehicleRepo;
         this.userRepo = userRepo;
         this.eventPublisher = eventPublisher;
         this.vehicleConverter = vehicleConverter;
         this.vehicleDtoConverter = vehicleDtoConverter;
         this.vehicleSpecifications = vehicleSpecifications;
-        this.vehicleMapper = vehicleMapper;
     }
 
     private Pageable getPage(Integer page) {
@@ -119,20 +116,19 @@ public class VehicleService {
     }
 
     @Transactional
-    public boolean editVehicleAfterRoute(String username, VehicleDto vehicleDto) {
+    public boolean editVehicleAfterRoute(String username, VehicleUpdateRequest request) {
         Optional<UserEntity> user = userRepo.findByUsername(username);
         if (user.isEmpty()) return false;
-        Optional<Vehicle> vehicle = vehicleRepo.findById(vehicleDto.getId());
-        if (vehicle.isEmpty()) return false;
-        vehicleDto.setRouteRecords(vehicle.get().getRouteRecords() + 1);
-        double dtoConsumption = vehicleDto.getAverageConsumption().doubleValue() / (vehicleDto.getMileage().doubleValue() / 100);
-        double newAvg = (vehicle.get().getAverageConsumption().doubleValue()
-                * vehicle.get().getRouteRecords() + dtoConsumption) / (vehicleDto.getRouteRecords());
-        BigDecimal consumption = new BigDecimal(newAvg);
-        vehicleDto.setAverageConsumption(consumption);
-        vehicleDto.setMileage(vehicle.get().getMileage() + vehicleDto.getMileage());
-        vehicleMapper.update(vehicle.get(), vehicleDto);
-        vehicleRepo.save(vehicle.get());
+        Optional<Vehicle> optionalVehicle = vehicleRepo.findById(request.getId());
+        if (optionalVehicle.isEmpty()) return false;
+        Vehicle vehicle = optionalVehicle.get();
+        double requestConsumption = request.getAverageConsumption().doubleValue() / (request.getMileage().doubleValue() / 100);
+        double newAvg = (vehicle.getAverageConsumption().doubleValue() * vehicle.getRouteRecords() + requestConsumption)
+                / (vehicle.getRouteRecords() + 1);
+        vehicle.setRouteRecords(vehicle.getRouteRecords() + 1);
+        vehicle.setAverageConsumption(new BigDecimal(newAvg));
+        vehicle.setMileage(vehicle.getMileage() + request.getMileage());
+        vehicleRepo.save(vehicle);
         return true;
     }
 

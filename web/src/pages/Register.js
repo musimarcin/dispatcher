@@ -33,7 +33,7 @@ function Register({showToast}) {
 
     const handleRolesChange = (role) => {
         setShowSelected(role);
-        setSelectedRole("ROLE_" + role);
+        setSelectedRole(role);
     };
 
     const handleSubmit = async (e) => {

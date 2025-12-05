@@ -1,5 +1,6 @@
 package com.app.service;
 
+import com.app.dto.requests.RouteStatusRequest;
 import com.app.utils.RouteDtoToRoute;
 import com.app.utils.RouteToRouteDto;
 import com.app.dto.RouteDto;
@@ -59,6 +60,7 @@ public class RouteServiceTests {
     private Vehicle vehicle;
     private VehicleDto vehicleDto;
     private HashMap<String, String> searchCriteria;
+    private RouteStatusRequest routeRequest;
 
     @BeforeEach
     void setUp() {
@@ -78,8 +80,10 @@ public class RouteServiceTests {
                 .waypoints(List.of()).userId(2L).build();
         routes = new PageImpl<>(List.of(route));
         routeDtos = new PageImpl<>(List.of(routeDto));
-        userJohn = UserEntity.builder().id(2L).username("John").password("smith").email("john@smith").roles(new HashSet<>(Set.of(Role.ROLE_DISPATCHER))).build();
+        userJohn = UserEntity.builder().id(2L).username("John").password("smith").email("john@smith")
+                .roles(new HashSet<>(Set.of(Role.DISPATCHER, Role.DRIVER))).build();
         searchCriteria = new HashMap<>(Map.of("status", "ACTIVE"));
+        routeRequest = new RouteStatusRequest(1L, RouteStatus.FINISHED);
     }
 
     @Test
@@ -128,7 +132,7 @@ public class RouteServiceTests {
     }
 
     @Test
-    void givenValidUserAndInvalidVehicle_whenGetUsersRoutes_thenReturnEmptyPage() {
+    void givenValidUserAndInvalidVehicle_whenGetVehicleRoutes_thenReturnEmptyPage() {
         given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
         given(vehicleRepo.findByLicensePlate(anyString())).willReturn(Optional.empty());
 
@@ -216,6 +220,36 @@ public class RouteServiceTests {
         given(routeRepo.findById(anyLong())).willReturn(Optional.empty());
 
         boolean result = routeService.deleteRoute(userJohn.getUsername(), 1L);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void givenValidUser_whenEditRoute_thenReturnTrue() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
+        given(routeRepo.findById(anyLong())).willReturn(Optional.of(route));
+
+        boolean result = routeService.editRoute(userJohn.getUsername(), routeRequest);
+
+        assertTrue(result);
+        assertEquals(RouteStatus.FINISHED, route.getStatus());
+    }
+
+    @Test
+    void givenInvalidUser_whenEditRoute_thenReturnFalse() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.empty());
+
+        boolean result = routeService.editRoute(userJohn.getUsername(), routeRequest);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void givenValidUserAndInvalidRoute_whenEditRoute_thenReturnFalse() {
+        given(userRepo.findByUsername(anyString())).willReturn(Optional.of(userJohn));
+        given(routeRepo.findById(anyLong())).willReturn(Optional.empty());
+
+        boolean result = routeService.editRoute(userJohn.getUsername(), routeRequest);
 
         assertFalse(result);
     }

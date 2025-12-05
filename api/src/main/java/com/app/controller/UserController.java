@@ -1,6 +1,9 @@
 package com.app.controller;
 
-import com.app.dto.*;
+import com.app.dto.requests.EmailChangeRequest;
+import com.app.dto.requests.PasswordChangeRequest;
+import com.app.dto.UserInfo;
+import com.app.dto.requests.UsernameChangeRequest;
 import com.app.security.CustomUserDetailService;
 import com.app.security.JWTGenerator;
 import com.app.security.SecurityUtil;
@@ -32,28 +35,6 @@ public class UserController {
         this.jwtGenerator = jwtGenerator;
         this.customUserDetailService = customUserDetailService;
         this.securityUtil = securityUtil;
-    }
-
-    @GetMapping("/drivers")
-    public ResponseEntity<?> getAllDrivers() {
-        String username = securityUtil.getSessionUser();
-        if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "You must be logged in to delete user"));
-        Set<UserInfo> drivers = userService.getAllDrivers(username);
-        if (drivers.isEmpty())
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Drivers not found"));
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body" , drivers));
-    }
-
-    @GetMapping
-    public ResponseEntity<?> getAllUsers() {
-        String username = securityUtil.getSessionUser();
-        if (username == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "You must be logged in to delete user"));
-        List<UserInfo> users = userService.getAllUsers(username);
-        if (users.isEmpty())
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Users not found"));
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", users));
     }
 
     @DeleteMapping
@@ -115,6 +96,30 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Failed to change email"));
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Successfully changed email"));
+    }
+
+    @GetMapping("/drivers")
+    public ResponseEntity<?> getAllDrivers() {
+        String username = securityUtil.getSessionUser();
+        if (username == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
+        Set<UserInfo> drivers = userService.getAllDrivers(username);
+        if (drivers.isEmpty())
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Drivers not found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body" , drivers));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllUsers() {
+        String username = securityUtil.getSessionUser();
+        if (username == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not logged in"));
+        List<UserInfo> users = userService.getAllUsers(username);
+        if (users == null)
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Users not found"));
+        if (users.isEmpty())
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Users not found"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("body", users));
     }
 
 }
