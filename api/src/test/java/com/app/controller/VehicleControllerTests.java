@@ -44,10 +44,6 @@ public class VehicleControllerTests {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private Page<VehicleDto> vehiclesDto;
-    @MockBean
-    private VehicleDto vehicleDto;
-    @MockBean
     private VehicleService vehicleService;
     @MockBean
     private SecurityUtil securityUtil;
@@ -58,6 +54,10 @@ public class VehicleControllerTests {
     @MockBean
     private CustomUserDetailService customUserDetailService;
 
+    private Page<VehicleDto> vehiclesDto;
+    private VehicleDto vehicleDto;
+    private VehicleUpdateRequest vehicleRequest;
+
     @BeforeEach
     void setUp() {
         vehicleDto = VehicleDto.builder().id(1L).licensePlate("1234").model("test_model")
@@ -65,6 +65,7 @@ public class VehicleControllerTests {
                 .averageConsumption(new BigDecimal(3)).mileage(4).lastMaintenance(new Date())
                 .createdAt(Instant.now()).userId(2L).build();
         vehiclesDto = new PageImpl<>(List.of(vehicleDto));
+        vehicleRequest = new VehicleUpdateRequest(1L, new BigDecimal(5), 5);
     }
 
     @Test
@@ -201,7 +202,7 @@ public class VehicleControllerTests {
 
         mockMvc.perform(put("/api/vehicle/route")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("mileage", "20"))))
+                        .content(objectMapper.writeValueAsString(vehicleRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully updated vehicle"));
     }
@@ -213,9 +214,48 @@ public class VehicleControllerTests {
 
         mockMvc.perform(put("/api/vehicle/route")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("mileage", "20"))))
+                        .content(objectMapper.writeValueAsString(vehicleRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Unsuccessful vehicle update"));
+    }
+
+    @Test
+    void givenLoggedInUserAndInvalidAvgConsumptionVehicle_whenEditVehicleAfterRoute_thenReturnBadRequest() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(vehicleService.editVehicleAfterRoute(anyString(), any(VehicleUpdateRequest.class))).willReturn(false);
+        vehicleRequest.setAverageConsumption(null);
+
+        mockMvc.perform(put("/api/vehicle/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vehicleRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Insert average consumption"));
+    }
+
+    @Test
+    void givenLoggedInUserAndInvalidIdVehicle_whenEditVehicleAfterRoute_thenReturnBadRequest() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(vehicleService.editVehicleAfterRoute(anyString(), any(VehicleUpdateRequest.class))).willReturn(false);
+        vehicleRequest.setId(null);
+
+        mockMvc.perform(put("/api/vehicle/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vehicleRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Insert selected vehicle id"));
+    }
+
+    @Test
+    void givenLoggedInUserAndInvalidMileageVehicle_whenEditVehicleAfterRoute_thenReturnBadRequest() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(vehicleService.editVehicleAfterRoute(anyString(), any(VehicleUpdateRequest.class))).willReturn(false);
+        vehicleRequest.setMileage(null);
+
+        mockMvc.perform(put("/api/vehicle/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vehicleRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Insert new mileage"));
     }
 
     @Test
@@ -224,7 +264,7 @@ public class VehicleControllerTests {
 
         mockMvc.perform(put("/api/vehicle/route")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("mileage", "20"))))
+                        .content(objectMapper.writeValueAsString(vehicleRequest)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Not logged in"));
     }

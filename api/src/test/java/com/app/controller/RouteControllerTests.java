@@ -46,12 +46,6 @@ public class RouteControllerTests {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private Page<RouteDto> routesDto;
-    @MockBean
-    private RouteDto routeDto;
-    @MockBean
-    private VehicleDto vehicleDto;
-    @MockBean
     private RouteService routeService;
     @MockBean
     private SecurityUtil securityUtil;
@@ -61,6 +55,11 @@ public class RouteControllerTests {
     private AuthenticationManager authenticationManager;
     @MockBean
     private CustomUserDetailService customUserDetailService;
+
+    private Page<RouteDto> routesDto;
+    private RouteDto routeDto;
+    private VehicleDto vehicleDto;
+    private RouteStatusRequest routeRequest;
 
     @BeforeEach
     void setUp() {
@@ -72,6 +71,7 @@ public class RouteControllerTests {
                 .startTime(new Date()).endTime(new Date()).status(RouteStatus.ACTIVE).createdAt(Instant.now())
                 .waypoints(new ArrayList<>()).userId(2L).build();
         routesDto = new PageImpl<>(List.of(routeDto));
+        routeRequest = new RouteStatusRequest(1L, RouteStatus.FINISHED);
     }
 
     @Test
@@ -229,7 +229,7 @@ public class RouteControllerTests {
 
         mockMvc.perform(put("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("status", String.valueOf(RouteStatus.FINISHED)))))
+                        .content(objectMapper.writeValueAsString(routeRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successful route update"));
     }
@@ -241,9 +241,35 @@ public class RouteControllerTests {
 
         mockMvc.perform(put("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("wrong", "field"))))
+                        .content(objectMapper.writeValueAsString(routeRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Unsuccessful route update"));
+    }
+
+    @Test
+    void givenLoggedInUserAndInvalidIdRoute_whenEditRoute_thenReturnBadRequest() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(routeService.editRoute(anyString(), any(RouteStatusRequest.class))).willReturn(false);
+        routeRequest.setId(null);
+
+        mockMvc.perform(put("/api/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(routeRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Insert selected route id"));
+    }
+
+    @Test
+    void givenLoggedInUserAndInvalidStatusRoute_whenEditRoute_thenReturnBadRequest() throws Exception {
+        given(securityUtil.getSessionUser()).willReturn("John");
+        given(routeService.editRoute(anyString(), any(RouteStatusRequest.class))).willReturn(false);
+        routeRequest.setStatus(null);
+
+        mockMvc.perform(put("/api/route")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(routeRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Insert new route status"));
     }
 
     @Test
@@ -252,7 +278,7 @@ public class RouteControllerTests {
 
         mockMvc.perform(put("/api/route")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("status", "FINISHED"))))
+                        .content(objectMapper.writeValueAsString(routeRequest)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Not logged in"));
     }

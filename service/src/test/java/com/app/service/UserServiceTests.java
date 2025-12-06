@@ -73,8 +73,17 @@ public class UserServiceTests {
     }
 
     @Test
-    void givenInvalidUser_whenCreateUser_thenReturnNull() {
+    void givenInvalidUserName_whenCreateUser_thenReturnNull() {
         given(userRepo.existsByUsername(anyString())).willReturn(true);
+
+        UserDto result = userService.createUser(userDtoJohn);
+
+        assertNull(result);
+    }
+
+    @Test
+    void givenInvalidUserEmail_whenCreateUser_thenReturnNull() {
+        given(userRepo.existsByUsername(anyString())).willReturn(false);
         given(userRepo.existsByEmail(anyString())).willReturn(true);
 
         UserDto result = userService.createUser(userDtoJohn);
