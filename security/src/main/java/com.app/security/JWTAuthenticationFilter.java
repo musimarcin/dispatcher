@@ -1,10 +1,13 @@
 package com.app.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,9 +47,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
-        } catch (Exception e) {
-            logger.error("JWT authentication error: {}", e);
+        } catch (JwtException e) {
             SecurityContextHolder.clearContext();
+            throw new BadCredentialsException("Invalid JWT token", e);
+        } catch (Exception ex) {
+            SecurityContextHolder.clearContext();
+            throw new AuthenticationServiceException("Authentication error", ex);
         }
         filterChain.doFilter(request, response);
     }

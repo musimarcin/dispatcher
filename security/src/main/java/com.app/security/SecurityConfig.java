@@ -45,11 +45,11 @@ public class SecurityConfig {
             .sessionManagement(ses -> ses.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .requestMatchers("/osrm/**", "/api/nominatim/**", "/api/auth/**", "/api/roles/**").permitAll()
+                    .requestMatchers("/osrm/**", "/api/nominatim/**", "/api/auth/**").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers("/api/user/**", "/api/vehicle/**", "/api/notifications/**",
-                            "/api/route/**", "/api/fuel/**").authenticated()
-                    .requestMatchers("/api/admin").hasRole(String.valueOf(Role.ADMIN))
+                            "/api/route/**", "/api/fuel/**", "/api/roles").authenticated()
+                    .requestMatchers("/api/roles/**").hasAuthority(Role.ADMIN.name())
                     .anyRequest().denyAll()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -91,7 +91,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
